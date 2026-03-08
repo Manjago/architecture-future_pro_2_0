@@ -50,7 +50,7 @@
 | Задание | Директория | Описание | Статус |
 |---------|-----------|----------|--------|
 | Task 3 | [`Task3Advanced/`](Task3Advanced/) | Целевая C4-архитектура + карта рисков | **Готово** |
-| Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | Не начато |
+| Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | **Готово** |
 | Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | Не начато |
 | Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | Не начато |
 | Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | Не начато |
@@ -163,14 +163,109 @@
 
 ## Task4Advanced — Моделирование домена и интеграций
 
-*Будет заполнено.*
+### Что сделано
 
-**Ожидаемые артефакты:**
-- `bounded-contexts.*` — схема bounded contexts
-- `event-storming.*` — Event Storming (событийная схема)
-- `aggregates.md` — описание агрегатов (границы, инварианты, ключи)
-- `events.md` — каталог доменных событий (название, контекст-источник, семантика, минимальный контракт)
-- `justification.md` — обоснование событийного подхода vs Camel/DWH
+1. Context Map — схема Bounded Contexts и отношений между ними (PlantUML)
+2. Event Storming — Big Picture диаграмма межконтекстных событий и политик (PlantUML)
+3. Описание агрегатов — границы, инварианты, ключи для каждого BC
+4. Каталог доменных событий — 15 событий с контрактами и подписчиками
+5. Обоснование событийного подхода vs Camel/DWH
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`bounded-contexts.puml`](Task4Advanced/bounded-contexts.puml) | Context Map — Bounded Contexts и отношения |
+| [`event-storming.puml`](Task4Advanced/event-storming.puml) | Event Storming — Big Picture (межконтекстные события и политики) |
+| [`aggregates.md`](Task4Advanced/aggregates.md) | Описание агрегатов (границы, инварианты, ключи) |
+| [`events.md`](Task4Advanced/events.md) | Каталог доменных событий (контракты, подписчики) |
+| [`justification.md`](Task4Advanced/justification.md) | Обоснование событийного подхода vs Camel/DWH |
+
+### Context Map — Bounded Contexts
+
+7 Bounded Contexts, выделенных по принципам DDD:
+
+![Context Map](Task4Advanced/bounded-contexts.png)
+
+| Домен | Bounded Context | Ключевые агрегаты |
+|-------|----------------|------------------|
+| Медицинский | Patient Management | Patient |
+| Медицинский | Diagnostics | DiagnosticOrder |
+| Финтех | Billing | Invoice, Payment |
+| Финтех | Credit | CreditContract |
+| ИИ | AI Diagnostics | AIAnalysis, ScoringModel |
+| Внутренний | Internal Operations | Employee, InventoryItem |
+| Аналитический | Analytics & BI | Report |
+
+**Типы отношений между контекстами:**
+
+| Цвет на диаграмме | Тип отношения | Описание |
+|-------------------|---------------|----------|
+| Фиолетовый | Partnership | Равноправная со-эволюция (Patient Mgmt ↔ Diagnostics, Diagnostics ↔ AI) |
+| Зелёный | Customer–Supplier (U→D) | Upstream публикует события, downstream подписан [OHS/PL: Avro] |
+| Серый | Conformist | Downstream принимает модель upstream as-is (регуляторы, платёжные системы) |
+| Оранжевый | ACL | Anti-Corruption Layer — трансляция legacy → events (Legacy Bridge) |
+
+**Shared Kernel:** общие идентификаторы (PatientId, ClinicId, EmployeeId, Money), используемые всеми BC.
+
+### Event Storming — Big Picture
+
+Межконтекстные события и политики — как домены связаны через события.
+
+![Event Storming](Task4Advanced/event-storming.png)
+
+**5 межконтекстных политик (ключевые интеграции):**
+
+| # | Событие-триггер | Политика | Целевой BC |
+|---|----------------|----------|------------|
+| 1 | PatientRegistered | → Создать счёт за первичный приём | Billing |
+| 2 | ResearchOrdered | → Запустить ИИ-анализ | AI Diagnostics |
+| 3 | ResearchCompleted | → ИИ-анализ результатов исследований | AI Diagnostics |
+| 4 | CreditContractCreated | → Запустить скоринг | AI Diagnostics |
+| 5 | ScoringCompleted | → Принять кредитное решение | Credit |
+
+Все доменные события поступают в **Analytics & BI** (downstream) для обновления аналитических проекций.
+
+### Агрегаты
+
+10 агрегатов в 7 BC. Для каждого описаны: корень, ID, внутренние объекты, инварианты, публикуемые события. Подробности — в [`aggregates.md`](Task4Advanced/aggregates.md).
+
+**Ключевые принципы:**
+- Ссылки между агрегатами — только по ID (не прямые ссылки)
+- Один агрегат — одна транзакция
+- Согласованность между агрегатами — через события (eventual consistency)
+
+### Каталог событий
+
+15 доменных событий. Для каждого описаны: источник, агрегат, семантика, подписчики, минимальный контракт (payload). Подробности — в [`events.md`](Task4Advanced/events.md).
+
+**Сводная таблица:**
+
+| # | Событие | Источник | Подписчики |
+|---|---------|----------|------------|
+| 1 | PatientRegistered | Patient Management | Billing, Analytics |
+| 2 | PatientUpdated | Patient Management | Analytics |
+| 3 | ResearchOrdered | Diagnostics | AI Diagnostics, Analytics |
+| 4 | ResearchCompleted | Diagnostics | AI Diagnostics, Analytics |
+| 5 | AIDiagnosisCompleted | AI Diagnostics | Analytics |
+| 6 | AIDiagnosisFailed | AI Diagnostics | Analytics |
+| 7 | ScoringCompleted | AI Diagnostics | Credit, Analytics |
+| 8 | InvoiceCreated | Billing | Analytics |
+| 9 | PaymentReceived | Billing | Analytics |
+| 10 | CreditContractCreated | Credit | AI Diagnostics, Analytics |
+| 11 | CreditApproved | Credit | Analytics |
+| 12 | CreditRejected | Credit | Analytics |
+| 13 | EmployeeHired | Internal Operations | Analytics |
+| 14 | InventoryUpdated | Internal Operations | Analytics |
+| 15 | ReportGenerated | Analytics & BI | — (внутреннее) |
+
+Все события передаются через Event Bus (Kafka) в формате **Avro**, версионируются через **Schema Registry**. Стандартный конверт включает `correlationId` для сквозной трассировки цепочек.
+
+### Обоснование событийного подхода
+
+Подробности — в [`justification.md`](Task4Advanced/justification.md).
+
+**Кратко:** текущая архитектура (Camel + DWH) создаёт тесную связность, batch-отчётность с задержкой в часы и невозможность добавления новых направлений без модификации центрального хранилища. Событийный подход решает все три проблемы: слабая связность (fire-and-forget), near-real-time (секунды вместо часов), масштабируемость (новый BC = подписка на топики, без изменения существующих доменов).
 
 ---
 
