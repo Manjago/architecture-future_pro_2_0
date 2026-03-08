@@ -51,7 +51,7 @@
 |---------|-----------|----------|--------|
 | Task 3 | [`Task3Advanced/`](Task3Advanced/) | Целевая C4-архитектура + карта рисков | **Готово** |
 | Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | **Готово** |
-| Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | Не начато |
+| Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | **Готово** |
 | Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | Не начато |
 | Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | Не начато |
 
@@ -271,12 +271,99 @@
 
 ## Task5Advanced — Проектирование технологического стека и расчёт стоимости
 
-*Будет заполнено.*
+### Что сделано
 
-**Ожидаемые артефакты:**
-- `tech-radar.*` — расширенный технический радар
-- `tco-analysis.*` — TCO-анализ (текущая vs целевая архитектура, горизонт 3 года)
-- `roadmap.*` — стратегический роадмап внедрения Data Mesh
+1. Расширенный технологический радар (технологии + архитектурные паттерны, 4 квадранта × 4 кольца)
+2. TCO-анализ текущей vs целевой архитектуры на горизонте 3 лет
+3. Стратегический роадмап внедрения Data Mesh (3 этапа, 6 ролей, 8 milestones)
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`tech-radar.md`](Task5Advanced/tech-radar.md) | Расширенный технологический радар (таблица с обоснованиями) |
+| [`tech-radar.svg`](Task5Advanced/tech-radar.svg) | Визуализация техрадара (SVG, 4 квадранта × 4 кольца) |
+| [`tco-analysis.md`](Task5Advanced/tco-analysis.md) | TCO-анализ (текущая vs целевая архитектура, 3 года) |
+| [`roadmap.md`](Task5Advanced/roadmap.md) | Стратегический роадмап внедрения Data Mesh |
+| [`roadmap.puml`](Task5Advanced/roadmap.puml) | Gantt-диаграмма роадмапа (PlantUML) |
+
+### Технологический радар
+
+Расширенный радар включает технологии и архитектурные паттерны. 4 квадранта (Techniques, Platforms, Tools, Languages & Frameworks) × 4 кольца (Adopt, Trial, Assess, Hold).
+
+![Tech Radar](Task5Advanced/tech-radar.svg)
+
+**Сводка по кольцам:**
+
+| Кольцо | Techniques | Platforms | Tools | Languages & Frameworks |
+|--------|-----------|-----------|-------|----------------------|
+| **Adopt** | EDA, DDD, IaC, ACL | Kafka, PostgreSQL, K8s, S3 | Terraform, Keycloak, Kong/Envoy, Schema Registry, Kafka Connect, Grafana+Prometheus | Java/Kotlin, Python+FastAPI, Go, React |
+| **Trial** | Data Mesh, Self-Service BI | ClickHouse, Managed Cloud | Flink, MLflow, Jaeger/Zipkin | — |
+| **Assess** | CQRS, Event Sourcing | — | — | — |
+| **Hold** | Batch ETL, P2P Integration | SQL Server 2008 | Power BI, PowerBuilder | PowerBuilder |
+
+**Ключевые решения:**
+- **EDA, DDD, IaC — Adopt.** Фундамент целевой архитектуры, проверен в Task3–4.
+- **Data Mesh, Self-Service BI — Trial.** Внедряются поэтапно, начиная с пилота. Переход в Adopt после валидации.
+- **CQRS, Event Sourcing — Assess.** Потенциально полезны (финтех, audit trail), но требуют отдельного PoC.
+- **SQL Server 2008, PowerBuilder, Power BI, Batch ETL, P2P Integration — Hold.** Весь текущий стек — на вывод с планом замены.
+
+### TCO-анализ
+
+Сравнение совокупной стоимости владения на горизонте 3 лет. Единица измерения: 1 у.е. = стоимость одного инженера в год (FTE).
+
+**Сравнение по годам:**
+
+| Год | As-Is | To-Be | Разница |
+|-----|-------|-------|---------|
+| Год 1 | 18.0 | 29.0 | +11.0 (инвестиция) |
+| Год 2 | 19.4 | 22.0 | +2.6 (инвестиция) |
+| Год 3 | 21.0 | 16.0 | −5.0 (экономия) |
+| **Итого** | **58.4** | **67.0** | **+8.6** |
+
+**Ключевые выводы:**
+- На горизонте 3 лет целевая архитектура дороже на ~15% — плата за миграцию и параллельную работу двух миров.
+- **Точка окупаемости — 4-й год (~42 мес.).** После этого экономия 5–8 у.е./год с нарастающим эффектом.
+- Основной драйвер затрат — **персонал** (50%+ от TCO). В as-is дорожает (дефицит legacy-специалистов), в to-be — стабилизируется.
+- Основной драйвер экономии — **устранение неэффективности** (10.5 → 3.5 у.е. за 3 года, экономия 7.0).
+- **Неденежные факторы** усиливают аргумент: security-риск SQL Server 2008 (end-of-life), time-to-market, масштабируемость, привлечение кадров.
+- **Рекомендация:** трансформация экономически обоснована, особенно с учётом нарастающих рисков as-is.
+
+Подробности: допущения, разбивка по статьям затрат, sensitivity analysis — в [`tco-analysis.md`](Task5Advanced/tco-analysis.md).
+
+### Роадмап внедрения Data Mesh
+
+Три этапа, синхронизированные с общими этапами трансформации и TCO-анализом.
+
+![Roadmap](Task5Advanced/roadmap.png)
+
+**Этапы:**
+
+| Этап | Период | Цель | Ключевые результаты |
+|------|--------|------|-------------------|
+| **1. Пилот** | 0–6 мес. | Валидация подхода на 1–2 доменах | Billing и Patient Management публикуют data products, прототип BI Portal, governance-стандарты, Camel Bridge (ACL), обучение команды |
+| **2. Масштабирование** | 6–18 мес. | Все домены в Data Mesh, запуск BI Portal | Все 7 BC публикуют data products, Self-Service BI Portal (GA), вывод Power BI, сокращение Camel, переквалификация legacy-специалистов |
+| **3. Зрелость** | 18–36 мес. | Полный переход, новые направления | Подключение фармы и электроники, вывод legacy (SQL Server, PowerBuilder, Camel), потоковая аналитика, подготовка к новым регионам |
+
+**Ключевые роли:**
+
+| Роль | Описание |
+|------|----------|
+| Data Product Owner | Владелец data product домена: состав, SLA, бэклог, governance. На старте 2 (пилот), к Этапу 3 — в каждом домене. |
+| Data Engineer (доменный) | Строит пайплайны публикации data product внутри домена. |
+| Platform Data Engineer | Развивает Self-Serve Data Platform (Kafka, ClickHouse, Data Catalog). |
+| BI-аналитик | Потребитель data products: отчёты и дашборды в Self-Service BI Portal. |
+| Governance Lead | Координация стандартов, эскалация конфликтов между доменами. |
+| Security Champion | Аудит безопасности, compliance (ФЗ-152, ЦБ), data residency. |
+
+**Контрольные точки (milestones):** 8 go/no-go точек от месяца 3 до месяца 36. Подробности — в [`roadmap.md`](Task5Advanced/roadmap.md).
+
+### Связь артефактов Task5
+
+Три артефакта — три проекции одного решения:
+- **Tech Radar** отвечает на вопрос **«что»**: какие технологии и паттерны используем (Adopt), пробуем (Trial), от чего отказываемся (Hold).
+- **TCO** отвечает на вопрос **«сколько»**: стоимость текущего и целевого состояния, точка окупаемости, обоснование инвестиции.
+- **Роадмап** отвечает на вопрос **«когда»**: этапы внедрения, роли, milestones, привязка к бизнес-целям.
 
 ---
 
