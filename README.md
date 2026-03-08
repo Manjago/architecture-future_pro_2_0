@@ -52,7 +52,7 @@
 | Task 3 | [`Task3Advanced/`](Task3Advanced/) | Целевая C4-архитектура + карта рисков | **Готово** |
 | Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | **Готово** |
 | Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | **Готово** |
-| Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | Не начато |
+| Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | **Готово** |
 | Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | Не начато |
 
 **Порядок выполнения:** 3 → 4 → 5 → 1 → 2 (сначала архитектура и домены, потом инфраструктура).
@@ -369,12 +369,99 @@
 
 ## Task1Advanced — Модульная инфраструктура Terraform
 
-*Будет заполнено.*
+### Что сделано
 
-**Ожидаемые артефакты:**
-- `modules/vm/` — переиспользуемый модуль vm_module (main.tf, variables.tf, outputs.tf)
-- `envs/dev/`, `envs/stage/`, `envs/prod/` — конфигурации окружений (.tfvars)
-- README.md модуля
+1. Переиспользуемый модуль `vm_module` (Docker-провайдер как локальная замена облачного)
+2. Три окружения (dev, stage, prod) с разными конфигурациями через `.tfvars`
+3. README модуля с описанием параметров, выходов и инструкцией по запуску
+
+### Выбор провайдера
+
+В качестве провайдера используется **Docker** (`kreuzwerker/docker`). Docker-контейнер выступает аналогом виртуальной машины: имеет ограничения CPU/RAM, подключаемый том (volume) и привязку к изолированной сети. Принципы модульности и параметризации полностью идентичны облачному провайдеру — при переезде в облако меняются только ресурсы в `main.tf` модуля, интерфейс (`variables.tf`, `outputs.tf`) остаётся тем же.
+
+| Концепция задания | Реализация (Docker) | Облачный аналог |
+|---|---|---|
+| Виртуальная машина | `docker_container` | `yandex_compute_instance` |
+| Количество ядер | `cpu_shares` | `resources.cores` |
+| Объём RAM | `memory` | `resources.memory` |
+| Подключаемый диск | `docker_volume` + mount | `yandex_compute_disk` |
+| Subnet ID | `docker_network` | `yandex_vpc_subnet` |
+| SSH-ключ | Environment variable | `metadata.ssh-keys` |
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`modules/vm/main.tf`](Task1Advanced/modules/vm/main.tf) | Ресурсы: docker_image, docker_volume, docker_container |
+| [`modules/vm/variables.tf`](Task1Advanced/modules/vm/variables.tf) | Входные параметры модуля (9 переменных с валидацией) |
+| [`modules/vm/outputs.tf`](Task1Advanced/modules/vm/outputs.tf) | Выходные значения (8 outputs) |
+| [`envs/dev/terraform.tfvars`](Task1Advanced/envs/dev/terraform.tfvars) | Конфигурация dev-окружения |
+| [`envs/stage/terraform.tfvars`](Task1Advanced/envs/stage/terraform.tfvars) | Конфигурация stage-окружения |
+| [`envs/prod/terraform.tfvars`](Task1Advanced/envs/prod/terraform.tfvars) | Конфигурация prod-окружения |
+| [`README.md`](Task1Advanced/README.md) | Документация модуля |
+
+### Структура
+
+```
+Task1Advanced/
+├── modules/
+│   └── vm/
+│       ├── main.tf          # Ресурсы: image, volume, container
+│       ├── variables.tf     # Входные параметры модуля
+│       └── outputs.tf       # Выходные значения
+├── envs/
+│   ├── dev/
+│   │   ├── provider.tf      # Провайдер Docker
+│   │   ├── main.tf          # Сеть + вызов модуля
+│   │   ├── variables.tf     # Переменные окружения
+│   │   ├── outputs.tf       # Выходные значения окружения
+│   │   └── terraform.tfvars # Конфигурация dev
+│   ├── stage/
+│   │   └── ...              # Аналогичная структура
+│   └── prod/
+│       └── ...              # Аналогичная структура
+└── README.md
+```
+
+### Параметры модуля
+
+| Параметр | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `environment` | `string` | — (обязательный) | Имя окружения: `dev`, `stage`, `prod` |
+| `container_name` | `string` | `"vm"` | Базовое имя контейнера |
+| `image` | `string` | `"ubuntu:22.04"` | Docker-образ |
+| `cpu_shares` | `number` | `256` | CPU shares (1024 = 1 ядро) |
+| `memory` | `number` | `256` | RAM в МБ |
+| `disk_size_gb` | `number` | `5` | Размер подключаемого диска в ГБ |
+| `disk_mount_path` | `string` | `"/mnt/data"` | Точка монтирования диска |
+| `network_name` | `string` | — (обязательный) | Имя Docker-сети |
+| `ssh_public_key` | `string` | `""` | Публичный SSH-ключ |
+| `labels` | `map(string)` | `{}` | Дополнительные метки |
+
+### Конфигурации окружений
+
+| Параметр | dev | stage | prod |
+|---|---|---|---|
+| CPU shares | 256 (¼ ядра) | 512 (½ ядра) | 1024 (1 ядро) |
+| Memory | 256 МБ | 512 МБ | 1024 МБ |
+| Disk | 5 ГБ | 10 ГБ | 20 ГБ |
+
+### Принципы
+
+- **Никакого хардкода в модуле.** Все значения — через переменные. Модуль не знает, в каком окружении работает.
+- **Валидация входов.** Переменные `environment`, `cpu_shares`, `memory`, `disk_size_gb` валидируются на уровне модуля.
+- **Метки (labels).** Все ресурсы помечены: `managed-by=terraform`, `environment={env}`, `module=vm`.
+- **Изоляция окружений.** Каждое окружение — отдельная Docker-сеть, отдельный state, отдельные ресурсы.
+
+### Как запустить
+
+```bash
+cd Task1Advanced/envs/dev
+terraform init
+terraform plan                           # посмотреть, что будет создано
+terraform apply                          # применить (подхватит terraform.tfvars)
+terraform apply -var-file=terraform.tfvars  # или явно указать var-file
+```
 
 ---
 
@@ -393,5 +480,5 @@
 
 - **Диаграммы:** PlantUML с C4-PlantUML (`!include` из [plantuml-stdlib/C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML))
 - **Рендеринг:** [planttext.com](https://www.planttext.com/)
-- **IaC:** Terraform
+- **IaC:** Terraform + Docker Provider (локальная замена облачного провайдера)
 - **Репозиторий:** GitHub (публичный)
