@@ -1,0 +1,10 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+tfplan-*
+.terraform.lock.hcl
+
+# MinIO data (local)
+minio-data/
