@@ -1,0 +1,84 @@
+@startgantt roadmap
+title Роадмап внедрения Data Mesh «Будущее 2.0»
+
+printscale quarterly
+projectscale quarterly
+
+Project starts 2025-07-01
+
+-- Этап 1: Пилот (0–6 мес.) --
+
+[Развёртывание платформы\n(Kafka, Schema Registry, K8s)] starts 2025-07-01 and ends 2025-10-01
+[Развёртывание платформы\n(Kafka, Schema Registry, K8s)] is colored in #438DD5
+
+[Camel Bridge (ACL)] starts 2025-07-01 and ends 2025-10-01
+[Camel Bridge (ACL)] is colored in #E8A317
+
+[Пилот: Billing\n(data product)] starts 2025-08-01 and ends 2025-12-01
+[Пилот: Billing\n(data product)] is colored in #2E8B57
+
+[Пилот: Patient Management\n(data product)] starts 2025-08-01 and ends 2025-12-01
+[Пилот: Patient Management\n(data product)] is colored in #2E8B57
+
+[Прототип BI Portal] starts 2025-09-01 and ends 2025-12-01
+[Прототип BI Portal] is colored in #438DD5
+
+[Governance: стандарты\nи governance-группа] starts 2025-07-01 and ends 2025-12-01
+[Governance: стандарты\nи governance-группа] is colored in #BA55D3
+
+[Обучение команды\n(Kafka, DDD, K8s, Terraform)] starts 2025-07-01 and ends 2025-12-01
+[Обучение команды\n(Kafka, DDD, K8s, Terraform)] is colored in #FF8C00
+
+-- Этап 2: Масштабирование (6–18 мес.) --
+
+[Diagnostics + Credit\n(data products)] starts 2026-01-01 and ends 2026-04-01
+[Diagnostics + Credit\n(data products)] is colored in #2E8B57
+
+[AI Diagnostics + Internal Ops\n(data products)] starts 2026-04-01 and ends 2026-07-01
+[AI Diagnostics + Internal Ops\n(data products)] is colored in #2E8B57
+
+[Analytics & BI\n(data product)] starts 2026-04-01 and ends 2026-07-01
+[Analytics & BI\n(data product)] is colored in #2E8B57
+
+[Self-Service BI Portal\n(MVP → GA)] starts 2026-01-01 and ends 2026-07-01
+[Self-Service BI Portal\n(MVP → GA)] is colored in #438DD5
+
+[Flink, MLflow, Jaeger\n(Trial → валидация)] starts 2026-01-01 and ends 2026-07-01
+[Flink, MLflow, Jaeger\n(Trial → валидация)] is colored in #438DD5
+
+[Вывод Power BI] starts 2026-04-01 and ends 2026-10-01
+[Вывод Power BI] is colored in #CC4444
+
+[Сокращение маршрутов Camel] starts 2026-01-01 and ends 2026-10-01
+[Сокращение маршрутов Camel] is colored in #CC4444
+
+[Переквалификация\nlegacy-специалистов] starts 2026-01-01 and ends 2026-10-01
+[Переквалификация\nlegacy-специалистов] is colored in #FF8C00
+
+-- Этап 3: Зрелость (18–36 мес.) --
+
+[Новые направления\n(фарма, электроника)] starts 2027-01-01 and ends 2027-07-01
+[Новые направления\n(фарма, электроника)] is colored in #2E8B57
+
+[Подготовка к новым регионам\n(geo, data residency)] starts 2027-01-01 and ends 2027-07-01
+[Подготовка к новым регионам\n(geo, data residency)] is colored in #438DD5
+
+[Потоковая аналитика\n(real-time паттерны)] starts 2027-01-01 and ends 2027-07-01
+[Потоковая аналитика\n(real-time паттерны)] is colored in #438DD5
+
+[Вывод Camel Bridge] starts 2027-01-01 and ends 2027-07-01
+[Вывод Camel Bridge] is colored in #CC4444
+
+[Вывод SQL Server 2008\n(→ read-only архив → off)] starts 2027-04-01 and ends 2028-04-01
+[Вывод SQL Server 2008\n(→ read-only архив → off)] is colored in #CC4444
+
+[Вывод PowerBuilder UI] starts 2027-01-01 and ends 2027-10-01
+[Вывод PowerBuilder UI] is colored in #CC4444
+
+[Data lineage +\nавтоматизация compliance] starts 2027-04-01 and ends 2028-01-01
+[Data lineage +\nавтоматизация compliance] is colored in #BA55D3
+
+[Оптимизация платформы\n(автоскейлинг, tiered storage)] starts 2027-07-01 and ends 2028-04-01
+[Оптимизация платформы\n(автоскейлинг, tiered storage)] is colored in #438DD5
+
+@endgantt
