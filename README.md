@@ -53,7 +53,7 @@
 | Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | **Готово** |
 | Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | **Готово** |
 | Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | **Готово** |
-| Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | Не начато |
+| Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | **Готово** |
 
 **Порядок выполнения:** 3 → 4 → 5 → 1 → 2 (сначала архитектура и домены, потом инфраструктура).
 
@@ -467,12 +467,105 @@ terraform apply -var-file=terraform.tfvars  # или явно указать var
 
 ## Task2Advanced — CI/CD и удалённое хранение состояния
 
-*Будет заполнено.*
+### Что сделано
 
-**Ожидаемые артефакты:**
-- Terraform-код с S3-совместимым backend
-- CI/CD pipeline (GitHub Actions / GitLab CI / Jenkins): init → plan → apply
-- README.md с описанием скриптов
+1. Terraform-конфигурация с S3-совместимым backend (MinIO)
+2. CI/CD pipeline на GitHub Actions (validate → plan → apply, каскад dev → stage → prod)
+3. Локальные скрипты для запуска (init-backend, plan, apply, destroy)
+4. Docker Compose для MinIO
+
+### Remote Backend
+
+State хранится в MinIO (локальный S3-совместимый сервер). Каждое окружение — отдельный ключ в бакете:
+
+```
+terraform-state/
+├── dev/terraform.tfstate
+├── stage/terraform.tfstate
+└── prod/terraform.tfstate
+```
+
+Ключ задаётся при инициализации: `terraform init -backend-config="key=dev/terraform.tfstate"`. Это обеспечивает изоляцию — apply в dev не затрагивает state prod.
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`provider.tf`](Task2Advanced/provider.tf) | Провайдер Docker + S3 backend (MinIO) |
+| [`main.tf`](Task2Advanced/main.tf) | Сеть + вызов модуля vm из Task1Advanced |
+| [`variables.tf`](Task2Advanced/variables.tf) | Входные переменные |
+| [`outputs.tf`](Task2Advanced/outputs.tf) | Выходные значения |
+| [`envs/dev.tfvars`](Task2Advanced/envs/dev.tfvars) | Конфигурация dev |
+| [`envs/stage.tfvars`](Task2Advanced/envs/stage.tfvars) | Конфигурация stage |
+| [`envs/prod.tfvars`](Task2Advanced/envs/prod.tfvars) | Конфигурация prod |
+| [`docker-compose.yml`](Task2Advanced/docker-compose.yml) | MinIO (локальный S3) |
+| [`scripts/init-backend.sh`](Task2Advanced/scripts/init-backend.sh) | Запуск MinIO + создание бакета |
+| [`scripts/plan.sh`](Task2Advanced/scripts/plan.sh) | terraform init + validate + plan |
+| [`scripts/apply.sh`](Task2Advanced/scripts/apply.sh) | terraform apply из сохранённого плана |
+| [`scripts/destroy.sh`](Task2Advanced/scripts/destroy.sh) | terraform destroy |
+| [`.github/workflows/terraform.yml`](Task2Advanced/.github/workflows/terraform.yml) | GitHub Actions CI/CD pipeline |
+| [`README.md`](Task2Advanced/README.md) | Документация |
+
+### Структура
+
+```
+Task2Advanced/
+├── provider.tf              # Провайдер Docker + S3 backend (MinIO)
+├── main.tf                  # Сеть + вызов модуля vm из Task1Advanced
+├── variables.tf             # Входные переменные
+├── outputs.tf               # Выходные значения
+├── envs/
+│   ├── dev.tfvars           # Конфигурация dev
+│   ├── stage.tfvars         # Конфигурация stage
+│   └── prod.tfvars          # Конфигурация prod
+├── docker-compose.yml       # MinIO (локальный S3)
+├── scripts/
+│   ├── init-backend.sh      # Запуск MinIO + создание бакета
+│   ├── plan.sh              # terraform init + validate + plan
+│   ├── apply.sh             # terraform apply (из сохранённого плана)
+│   └── destroy.sh           # terraform destroy
+├── .github/
+│   └── workflows/
+│       └── terraform.yml    # GitHub Actions CI/CD pipeline
+└── README.md
+```
+
+### CI/CD Pipeline — GitHub Actions
+
+```
+PR создан
+  └─→ validate (fmt + validate)
+  └─→ plan (dev, stage, prod — параллельно)
+
+Push в main
+  └─→ validate
+  └─→ plan (dev, stage, prod)
+  └─→ apply dev     (автоматически)
+  └─→ apply stage   (автоматически, после dev)
+  └─→ apply prod    (РУЧНОЕ подтверждение)
+```
+
+**Ключевые решения:**
+- **Plan → артефакт → Apply.** Apply использует сохранённый план, а не пересчитывает. Гарантия: применяется именно то, что показал plan.
+- **Каскадный apply: dev → stage → prod.** Проблема на dev не доедет до prod.
+- **Ручное подтверждение для prod.** GitHub Environment Protection Rules — кто-то должен нажать кнопку.
+- **Секреты через GitHub Secrets.** Access/secret key — не в коде, а в `${{ secrets.MINIO_ACCESS_KEY }}`.
+- **Concurrency group.** Параллельные pipeline для одного ref не запускаются — защита от конфликтов state.
+
+### Связь с Task1Advanced
+
+Task2Advanced переиспользует модуль из Task1Advanced (`source = "../Task1Advanced/modules/vm"`), демонстрируя ключевое свойство модулей Terraform — один модуль, множество контекстов использования.
+
+### Как запустить локально
+
+```bash
+cd Task2Advanced
+./scripts/init-backend.sh    # запуск MinIO + создание бакета
+./scripts/plan.sh dev        # init + validate + plan
+./scripts/apply.sh dev       # apply из сохранённого плана
+terraform output             # проверка
+./scripts/destroy.sh dev     # очистка
+```
 
 ---
 
@@ -481,4 +574,6 @@ terraform apply -var-file=terraform.tfvars  # или явно указать var
 - **Диаграммы:** PlantUML с C4-PlantUML (`!include` из [plantuml-stdlib/C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML))
 - **Рендеринг:** [planttext.com](https://www.planttext.com/)
 - **IaC:** Terraform + Docker Provider (локальная замена облачного провайдера)
+- **Remote State:** MinIO (локальный S3-совместимый backend)
+- **CI/CD:** GitHub Actions
 - **Репозиторий:** GitHub (публичный)
