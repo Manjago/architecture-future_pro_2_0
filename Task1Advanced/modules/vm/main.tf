@@ -8,6 +8,15 @@
 # Принципы модульности и параметризации идентичны — меняется только провайдер.
 # -----------------------------------------------------------------------------
 
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+  }
+}
+
 locals {
   full_name = "${var.container_name}-${var.environment}"
 

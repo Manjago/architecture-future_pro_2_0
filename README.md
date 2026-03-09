@@ -569,6 +569,164 @@ terraform output             # проверка
 
 ---
 
+## Тестирование
+
+Все задания Task1Advanced и Task2Advanced протестированы на реальной машине. Ниже — окружение, найденные проблемы и их решения, результаты прогона.
+
+### Окружение
+
+| Компонент | Версия |
+|-----------|--------|
+| OS | Manjaro Linux (Arch-based) |
+| Terraform | 1.14.5 |
+| Docker | 29.2.1 |
+| Docker Provider | kreuzwerker/docker 3.6.2 |
+| MinIO Client | RELEASE.2025-08-13 (`mcli`) |
+| MinIO Server | latest (Docker image) |
+
+### Проблемы, найденные при тестировании
+
+#### 1. HashiCorp заблокировал доступ к registry.terraform.io из РФ
+
+При `terraform init` — ответ `"Content not available in your region"` и ссылка на [trade controls](https://www.hashicorp.com/trade-controls).
+
+**Решение:** SOCKS5-прокси через VLESS/XRay:
+
+```bash
+export HTTPS_PROXY=socks5://127.0.0.1:10808
+export HTTP_PROXY=socks5://127.0.0.1:10808
+terraform init  # работает
+```
+
+Удобная обёртка для `.zshrc`:
+
+```bash
+proxy() {
+  export HTTPS_PROXY=socks5://127.0.0.1:10808
+  export HTTP_PROXY=socks5://127.0.0.1:10808
+  echo "✓ Proxy on"
+}
+noproxy() { unset HTTPS_PROXY HTTP_PROXY; echo "✓ Proxy off"; }
+```
+
+> **Примечание:** прокси нужен только для `terraform init` (скачивание провайдеров из registry). После init провайдеры кешируются локально, и для `plan`/`apply` прокси не требуется.
+
+#### 2. Модуль не объявлял `required_providers`
+
+Terraform искал провайдер `hashicorp/docker` (дефолт) вместо `kreuzwerker/docker`.
+
+**Решение:** добавлен блок `terraform { required_providers }` в `modules/vm/main.tf` — стандартная практика, модуль должен явно заявлять свои зависимости.
+
+#### 3. MinIO Client на Arch/Manjaro называется `mcli`, а не `mc`
+
+Пакет `minio-client` ставится через `pacman`, но бинарник переименован в `mcli`, чтобы не конфликтовать с Midnight Commander (`mc`).
+
+**Решение:** скрипт `init-backend.sh` автоматически определяет имя бинарника:
+
+```bash
+if command -v mcli &> /dev/null; then MC=mcli
+elif command -v mc &> /dev/null; then MC=mc
+else echo "MinIO Client не найден"; exit 1; fi
+```
+
+#### 4. Скрипты не имели executable bit
+
+Git хранит permission bits, без `chmod +x` скрипты не запускались.
+
+**Решение:** `chmod +x scripts/*.sh` + коммит (Git фиксирует `100644 → 100755`).
+
+### Результаты: Task1Advanced
+
+Полный цикл `init → plan → apply → verify → destroy` для dev-окружения.
+
+**terraform plan** — 4 ресурса:
+
+```
+Plan: 4 to add, 0 to change, 0 to destroy.
+  + docker_network.env_network       (future20-dev)
+  + module.vm.docker_image.vm        (ubuntu:22.04)
+  + module.vm.docker_volume.data     (future20-vm-dev-data)
+  + module.vm.docker_container.vm    (future20-vm-dev, cpu_shares=256, memory=268435456)
+```
+
+**terraform apply** — успешно:
+
+```
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+
+Outputs:
+  container_id   = "70d0aa9b..."
+  container_name = "future20-vm-dev"
+  environment    = "dev"
+  ip_address     = "172.18.0.2"
+  network_name   = "future20-dev"
+  volume_name    = "future20-vm-dev-data"
+```
+
+**Верификация:**
+
+```bash
+$ docker ps --filter "label=managed-by=terraform"
+CONTAINER ID   IMAGE          COMMAND            STATUS          NAMES
+70d0aa9b1a82   8ea4cbcf3a26   "sleep infinity"   Up 56 seconds   future20-vm-dev
+
+$ docker exec future20-vm-dev cat /etc/os-release | head -3
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+
+$ docker exec future20-vm-dev df -h /mnt/data
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       1.8T  257G  1.5T  15% /mnt/data
+```
+
+**terraform destroy** — чисто, 4 ресурса удалены.
+
+### Результаты: Task2Advanced
+
+Полный цикл `init-backend → plan → apply → verify state → destroy`.
+
+**init-backend.sh** — MinIO запущен, бакет создан:
+
+```
+MinIO Client: mcli
+=== 1. Запуск MinIO ===
+ ✔ Container terraform-minio Created
+=== 4. Создание бакета 'terraform-state' ===
+Bucket created successfully `local/terraform-state`.
+```
+
+**plan.sh dev** — backend S3 подключен, 4 ресурса:
+
+```
+Successfully configured the backend "s3"!
+=== terraform validate ===
+Success! The configuration is valid.
+Plan: 4 to add, 0 to change, 0 to destroy.
+=== План сохранён: tfplan-dev ===
+```
+
+**apply.sh dev** — успешно:
+
+```
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+Outputs:
+  container_name = "future20-vm-dev"
+  ip_address     = "172.19.0.2"
+  volume_name    = "future20-vm-dev-data"
+```
+
+**State в MinIO** — ключевая проверка:
+
+```bash
+$ mcli ls local/terraform-state/dev/
+[2026-03-09 10:28:04 MSK] 9.6KiB STANDARD terraform.tfstate
+```
+
+State хранится удалённо в MinIO, не локально — требование задания выполнено.
+
+**destroy.sh dev + docker compose down** — чисто, все ресурсы удалены, MinIO остановлен.
+
 ## Инструменты
 
 - **Диаграммы:** PlantUML с C4-PlantUML (`!include` из [plantuml-stdlib/C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML))
