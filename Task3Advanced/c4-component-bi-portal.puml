@@ -1,0 +1,66 @@
+@startuml c4-component-bi-portal
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Self-Service BI Portal — Component Diagram
+
+AddElementTag("new", $bgColor="#438DD5", $fontColor="#ffffff", $legendText="Новый компонент")
+
+' === Внешние элементы ===
+
+Person(analyst, "Бизнес-аналитик", "Строит отчёты, анализирует\nпоказатели по доменам")
+
+ContainerQueue(event_bus, "Event Bus", "Apache Kafka", "Доменные события")
+Container(iam, "IAM", "Keycloak", "Аутентификация,\nавторизация")
+ContainerDb(analytics_store, "Analytics Store", "ClickHouse / DWH", "Аналитическое хранилище")
+
+' === Boundary: Self-Service BI Portal ===
+
+Container_Boundary(bi_portal, "Self-Service BI Portal") {
+
+    Component(web_ui, "Web UI", "React", "SPA: интерфейс для построения\nотчётов, дашбордов,\nвизуализаций", $tags="new")
+
+    Component(report_builder, "Report Builder", "Python / FastAPI", "Конструктор отчётов:\nвыбор срезов, фильтры,\nагрегации, экспорт", $tags="new")
+
+    Component(access_control, "Access Control", "Python / FastAPI", "Контроль доступа к данным:\nуровни доступа по ролям\nи доменам", $tags="new")
+
+    Component(query_engine, "Query Engine", "Python / FastAPI", "Выполнение аналитических\nзапросов, оптимизация,\nкэширование результатов", $tags="new")
+
+    Component(data_catalog, "Data Catalog", "Python / FastAPI", "Каталог доступных данных:\nописание метрик, срезов,\nисточников по доменам", $tags="new")
+
+    Component(data_ingestion, "Data Ingestion", "Kafka Connect / Flink", "Подписка на доменные события,\nтрансформация, построение\nпроекций в Analytics Store", $tags="new")
+
+    Component(scheduler, "Report Scheduler", "Python / Celery", "Планировщик регулярных\nотчётов, рассылка\nпо расписанию", $tags="new")
+}
+
+' === Связи: аналитик → UI ===
+
+Rel_D(analyst, web_ui, "Строит отчёты,\nдашборды", "HTTPS")
+
+' === Связи: внутри портала ===
+
+Rel_D(web_ui, report_builder, "Запрос на построение\nотчёта", "REST/JSON")
+Rel_D(web_ui, data_catalog, "Просмотр доступных\nметрик и срезов", "REST/JSON")
+Rel_D(report_builder, access_control, "Проверка доступа\nк запрашиваемым данным", "internal")
+Rel_D(report_builder, query_engine, "Выполнение\nаналитического запроса", "internal")
+Rel_R(report_builder, scheduler, "Создание расписания\nдля отчёта", "internal")
+
+' === Связи: с внешними компонентами ===
+
+Rel_D(query_engine, analytics_store, "Аналитические запросы", "SQL / Native")
+Rel_D(data_ingestion, analytics_store, "Загрузка проекций\nиз доменных событий", "JDBC / Native")
+Rel_L(data_ingestion, event_bus, "Подписка на все\nдоменные события", "fire-and-forget, Avro")
+Rel_D(access_control, iam, "Проверка ролей\nи уровней доступа", "REST / OIDC")
+Rel(data_catalog, analytics_store, "Метаданные\nо доступных данных", "SQL")
+
+' === Примечание ===
+
+note right of data_ingestion
+  Медицинские карты, истории болезни
+  и результаты мед. исследований
+  **не включаются** в витрину данных
+  (требование бизнеса)
+end note
+
+@enduml

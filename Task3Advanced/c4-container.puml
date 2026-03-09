@@ -1,0 +1,154 @@
+@startuml c4-container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Целевая архитектура «Будущее 2.0» — Container Diagram (горизонт 3 года)
+
+' === Теги для визуального разделения ===
+
+AddElementTag("legacy", $bgColor="#999999", $fontColor="#ffffff", $legendText="Legacy (на вывод)")
+AddElementTag("new", $bgColor="#438DD5", $fontColor="#ffffff", $legendText="Новый компонент")
+AddElementTag("bridge", $bgColor="#E8A317", $fontColor="#ffffff", $legendText="Мост совместимости (ACL)")
+
+AddRelTag("fire_and_forget", $lineColor="#2E8B57", $textColor="#2E8B57", $legendText="fire-and-forget (Kafka, Avro)")
+AddRelTag("sync", $lineColor="#4169E1", $textColor="#4169E1", $legendText="sync (REST/gRPC)")
+AddRelTag("legacy_rel", $lineColor="#999999", $textColor="#999999", $legendText="legacy-интеграция (на вывод)")
+
+' === Персоны ===
+
+Person(operator, "Оператор клиники", "Регистрация, приём")
+Person(doctor, "Врач", "Диагностика, лечение")
+Person(analyst, "Бизнес-аналитик", "Отчёты, аналитика")
+Person(fintech_user, "Финтех-пользователь", "Кредиты, счета")
+
+' === Внешние системы ===
+
+System_Ext(pharma, "Фармацевтические компании", "Поставка лекарств")
+System_Ext(electronics, "Производитель мед. оборудования", "Диагностическое оборудование")
+System_Ext(payment, "Платёжные системы", "Процессинг платежей")
+
+' === Платформенные сервисы ===
+
+Boundary(platform, "Платформа") {
+    ContainerQueue(event_bus, "Event Bus", "Apache Kafka", "Потоковая платформа\nдля доменных событий", $tags="new")
+    Container(schema_reg, "Schema Registry", "Confluent Schema Registry", "Каталог и валидация\nсхем событий (Avro)", $tags="new")
+    Container(api_gw, "API Gateway", "Kong / Envoy", "Маршрутизация, rate limiting,\nаутентификация", $tags="new")
+    Container(iam, "IAM", "Keycloak", "Аутентификация, авторизация,\nуровни доступа", $tags="new")
+}
+
+' === Медицинский домен ===
+
+Boundary(medical_domain, "Медицинский домен") {
+    Container(patient_svc, "Patient Service", "Java/Kotlin", "Управление пациентами,\nрегистрация, приём", $tags="new")
+    Container(diagnostics_svc, "Diagnostics Service", "Java/Kotlin", "Назначение и отслеживание\nдиагностических исследований", $tags="new")
+    ContainerDb(medical_db, "Medical DB", "PostgreSQL", "Данные пациентов,\nмед. карты, исследования", $tags="new")
+}
+
+' === Финтех-домен ===
+
+Boundary(fintech_domain, "Финтех-домен") {
+    Container(billing_svc, "Billing Service", "Go", "Биллинг, счета,\nрасчёты", $tags="new")
+    Container(credit_svc, "Credit Service", "Java", "Кредитные договоры,\nскоринг", $tags="new")
+    ContainerDb(fintech_db, "Fintech DB", "PostgreSQL", "Финансовые данные,\nкредиты, счета", $tags="new")
+}
+
+' === ИИ-домен ===
+
+Boundary(ai_domain, "ИИ-домен") {
+    Container(ai_svc, "AI Diagnostics Service", "Python", "ИИ-модели для\nдиагностики и скоринга", $tags="new")
+    Container(model_registry, "Model Registry", "MLflow", "Версионирование\nи деплой моделей", $tags="new")
+    ContainerDb(ai_storage, "AI Storage", "S3 / Object Storage", "Снимки, датасеты,\nартефакты моделей", $tags="new")
+}
+
+' === Внутренний домен ===
+
+Boundary(internal_domain, "Внутренний домен") {
+    Container(internal_svc, "Internal Services", "Java/Kotlin", "HR, инвентаризация,\nуправление клиниками", $tags="new")
+    ContainerDb(internal_db, "Internal DB", "PostgreSQL", "Данные по персоналу,\nинвентаризация", $tags="new")
+}
+
+' === Аналитический домен ===
+
+Boundary(analytics_domain, "Аналитический домен") {
+    Container(bi_portal, "Self-Service BI Portal", "React + Python", "Портал самообслуживания:\nконструктор отчётов,\nвитрины данных", $tags="new")
+    ContainerDb(analytics_store, "Analytics Store", "ClickHouse / DWH", "Аналитическое хранилище:\nпроекции из доменных событий", $tags="new")
+    Container(data_ingestion, "Data Ingestion", "Kafka Connect / Flink", "Подписка на события,\nтрансформация, загрузка", $tags="new")
+}
+
+' === Legacy-мост ===
+
+Boundary(legacy_bridge, "Legacy-мост (на вывод к 36 мес.)") {
+    ContainerDb(dwh, "DWH", "SQL Server 2008", "Легаси-хранилище:\nклиенты, мед. карты,\nфинансы, отчётность", $tags="legacy")
+    Container(camel_bridge, "Camel Bridge", "Apache Camel", "Мост совместимости:\nlegacy ↔ events", $tags="bridge")
+    Container(pb_ui, "PowerBuilder UI", "PowerBuilder", "Легаси-интерфейс\nоператора (на вывод)", $tags="legacy")
+}
+
+' === Связи персон ===
+
+Rel_D(operator, api_gw, "Регистрация, приём", "HTTPS", $tags="sync")
+Rel_D(doctor, api_gw, "Диагностика, назначения", "HTTPS", $tags="sync")
+Rel_D(analyst, bi_portal, "Отчёты, конструктор", "HTTPS", $tags="sync")
+Rel_D(fintech_user, api_gw, "Кредиты, платежи", "HTTPS", $tags="sync")
+
+' === API Gateway → сервисы ===
+
+Rel_D(api_gw, patient_svc, "Маршрутизация", "REST/gRPC", $tags="sync")
+Rel_D(api_gw, billing_svc, "Маршрутизация", "REST/gRPC", $tags="sync")
+Rel_D(api_gw, credit_svc, "Маршрутизация", "REST/gRPC", $tags="sync")
+Rel_D(api_gw, internal_svc, "Маршрутизация", "REST/gRPC", $tags="sync")
+
+' === Домены → Event Bus (fire-and-forget) ===
+
+Rel_R(patient_svc, event_bus, "PatientRegistered,\nDiagnosisCompleted", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel_R(diagnostics_svc, event_bus, "ResearchOrdered,\nResearchCompleted", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel_L(billing_svc, event_bus, "InvoiceCreated,\nPaymentReceived", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel_L(credit_svc, event_bus, "CreditContractCreated,\nCreditApproved", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(ai_svc, event_bus, "AIDiagnosisCompleted,\nScoringCompleted", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(internal_svc, event_bus, "EmployeeHired,\nInventoryUpdated", "fire-and-forget, Avro", $tags="fire_and_forget")
+
+' === Event Bus → подписчики ===
+
+Rel_D(event_bus, data_ingestion, "Все доменные события", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(event_bus, ai_svc, "DiagnosisCompleted\n(для ИИ-анализа)", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(event_bus, billing_svc, "PatientRegistered\n(создание счёта)", "fire-and-forget, Avro", $tags="fire_and_forget")
+
+' === Внутренние sync-связи в доменах ===
+
+Rel(patient_svc, medical_db, "CRUD", "JDBC", $tags="sync")
+Rel(diagnostics_svc, medical_db, "CRUD", "JDBC", $tags="sync")
+Rel(billing_svc, fintech_db, "CRUD", "JDBC", $tags="sync")
+Rel(credit_svc, fintech_db, "CRUD", "JDBC", $tags="sync")
+Rel(ai_svc, ai_storage, "Модели, снимки", "S3 API", $tags="sync")
+Rel(ai_svc, model_registry, "Версии моделей", "REST", $tags="sync")
+Rel(internal_svc, internal_db, "CRUD", "JDBC", $tags="sync")
+Rel(data_ingestion, analytics_store, "Загрузка проекций", "JDBC/Native", $tags="sync")
+Rel(bi_portal, analytics_store, "Запросы отчётов", "SQL", $tags="sync")
+
+' === Аутентификация ===
+
+Rel(api_gw, iam, "Проверка токенов", "REST", $tags="sync")
+Rel(bi_portal, iam, "Авторизация доступа\nк данным", "REST", $tags="sync")
+
+' === Schema Registry ===
+
+Rel(event_bus, schema_reg, "Валидация схем", "REST", $tags="sync")
+
+' === Legacy-мост ===
+
+Rel(camel_bridge, event_bus, "Транслирует legacy-данные\nв события", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(camel_bridge, dwh, "Читает данные", "JDBC/ODBC", $tags="legacy_rel")
+Rel(event_bus, camel_bridge, "Транслирует события\nв legacy-формат", "fire-and-forget, Avro", $tags="fire_and_forget")
+Rel(pb_ui, dwh, "Интерфейс оператора\n(legacy, на вывод)", "ODBC", $tags="legacy_rel")
+
+' === Внешние системы ===
+
+Rel(diagnostics_svc, electronics, "Результаты\nисследований", "API / HL7", $tags="sync")
+Rel(patient_svc, pharma, "Данные по\nназначениям", "API", $tags="sync")
+Rel(billing_svc, payment, "Платёжные\nтранзакции", "API", $tags="sync")
+
+' === Doctor → AI (sync, через API GW) ===
+
+Rel(api_gw, ai_svc, "ИИ-диагностика", "REST", $tags="sync")
+
+@enduml

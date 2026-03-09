@@ -1,0 +1,405 @@
+   ~/p/a/11/architecture-future_pro_2_0    develop  cd Task1Advanced/envs/dev                           ✔ 
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop  terraform init                          ✔ 
+Initializing the backend...
+Initializing modules...
+- vm in ../../modules/vm
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Finding latest version of hashicorp/docker...
+╷
+│ Error: Invalid provider registry host
+│ 
+│ The host "registry.terraform.io" given in provider source address "registry.terraform.io/kreuzwerker/docker" does
+│ not offer a Terraform provider registry.
+╵
+╷
+│ Error: Invalid provider registry host
+│ 
+│ The host "registry.terraform.io" given in provider source address "registry.terraform.io/hashicorp/docker" does
+│ not offer a Terraform provider registry.
+╵
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  curl -s https://registry.terraform.io/.well-known/terraform.json
+<!doctype html><html lang=en><head><meta charset=utf-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Content not available in your region | HashiCorp</title><meta content="This content is not available in your region"name=description><meta content=HashiCorp name=author><link href="data:img/png;base64,iVBORw0KGgo="rel=icon type=image/png><style>*{line-height:1.3;margin:0}html{background:white;height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;font-size:20px;text-align:center;width:100%}div{border:1px solid #dbdbdc;display:block;padding:88px 100px;position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;text-align:center;height:170px;width:300px}p{margin:20px}</style><body><div><svg fill=none height=49 width=176 xmlns=http://www.w3.org/2000/svg><path d="M59.791 35.648V26.17h-8.312v9.478h-4.232V13.174h4.232v9.244h8.312v-9.244h4.232v22.474h-4.232zM79.538 35.648h-3.36l-.305-1.112a8.94 8.94 0 01-4.88 1.452c-2.996 0-4.274-2.059-4.274-4.894 0-3.34 1.447-4.622 4.778-4.622h3.936v-1.724c0-1.82-.504-2.461-3.128-2.461-1.526.01-3.047.174-4.54.488l-.504-3.137c1.83-.508 3.72-.77 5.62-.777 5.146 0 6.661 1.821 6.661 5.943l-.004 10.844zm-4.105-6.21h-3.026c-1.346 0-1.714.37-1.714 1.622 0 1.146.368 1.655 1.65 1.655a6.445 6.445 0 003.094-.849l-.004-2.427zM87.482 35.983a19.26 19.26 0 01-5.654-.946l.57-3.137c1.588.456 3.23.694 4.88.709 1.816 0 2.087-.424 2.087-1.655 0-1.01-.203-1.52-2.861-2.16-4.004-.981-4.473-1.991-4.473-5.162 0-3.306 1.447-4.758 6.124-4.758 1.654.002 3.302.194 4.913.573l-.423 3.273a28.75 28.75 0 00-4.507-.471c-1.782 0-2.087.424-2.087 1.417 0 1.316.102 1.418 2.324 1.99 4.587 1.219 5.027 1.826 5.027 5.183 0 3.188-.977 5.144-5.92 5.144zM105.616 35.648v-11.46c0-.878-.368-1.316-1.312-1.316-1.007 0-2.793.607-4.274 1.384v11.392h-4.105V12.499l4.105-.573v8.536a14.424 14.424 0 015.988-1.588c2.726 0 3.699 1.923 3.699 4.86v11.914h-4.101zM112.747 16.888V12.13h4.105v4.758h-4.105zm0 18.76V19.214h4.105v16.434h-4.105zM119.713 19.35c0-4.118 2.387-6.511 7.974-6.511 2.052 0 4.097.249 6.09.742l-.466 3.676a32.945 32.945 0 00-5.502-.573c-2.928 0-3.868 1.014-3.868 3.396v8.637c0 2.394.944 3.395 3.868 3.395a32.945 32.945 0 005.502-.573l.47 3.68a25.297 25.297 0 01-6.09.743c-5.587 0-7.974-2.394-7.974-6.51l-.004-10.102zM142.198 35.983c-5.62 0-7.131-3.102-7.131-6.477v-4.15c0-3.375 1.515-6.478 7.131-6.478 5.616 0 7.131 3.103 7.131 6.477v4.151c-.012 3.375-1.523 6.477-7.131 6.477zm0-13.582c-2.188 0-3.026.98-3.026 2.835v4.406c0 1.855.847 2.835 3.026 2.835 2.18 0 3.026-.98 3.026-2.835V25.22c-.008-1.854-.85-2.835-3.026-2.835v.017zM160.219 22.656a32.043 32.043 0 00-4.342 2.394v10.61h-4.106V19.215h3.466l.271 1.82a18.344 18.344 0 014.309-2.16l.402 3.782zM175.784 30.181c0 3.646-1.616 5.802-5.417 5.802a22.575 22.575 0 01-4.376-.475v6.79l-4.105.574V19.214h3.263l.423 1.383a8.61 8.61 0 015.18-1.719c3.297 0 5.045 1.957 5.045 5.705l-.013 5.598zm-9.789 1.855a18.16 18.16 0 003.636.424c1.481 0 2.052-.709 2.052-2.194v-5.794c0-1.35-.503-2.092-2.018-2.092a5.8 5.8 0 00-3.67 1.485v8.17zM16.175 3.675L0 13.034v22.474l6.077 3.518V16.552l10.098-5.848V3.675z"fill=#000 /><path d="M22.629 3.675v17.899h-6.454v-6.681l-6.077 3.518v22.933l6.077 3.527V27.023h6.454v6.634l6.077-3.514V7.193L22.63 3.676z"fill=#000 /><path d="M22.629 44.88l16.175-9.36V13.048l-6.077-3.52v22.475l-10.098 5.849v7.028z"fill=#000 /></svg><p>This content is not currently<br>available in your region.<p>Please see <a href=https://www.hashicorp.com/trade-controls>trade controls</a>.</div>%                                        ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1                                       ✔ 
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  export HTTPS_PROXY=socks5://127.0.0.1:10808
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  export HTTP_PROXY=socks5://127.0.0.1:10808
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  curl -s --proxy socks5://127.0.0.1:10808 https://registry.terraform.io/.well-known/terraform.json
+{"modules.v1":"/v1/modules/","providers.v1":"/v1/providers/"}
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  terraform init                       ✔ 
+Initializing the backend...
+Initializing modules...
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Finding latest version of hashicorp/docker...
+- Installing kreuzwerker/docker v3.6.2...
+- Installed kreuzwerker/docker v3.6.2 (self-signed, key ID BD080C4571C6104C)
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://developer.hashicorp.com/terraform/cli/plugins/signing
+╷
+│ Error: Failed to query available provider packages
+│ 
+│ Could not retrieve the list of available versions for provider hashicorp/docker: provider registry
+│ registry.terraform.io does not have a provider named registry.terraform.io/hashicorp/docker
+│ 
+│ Did you intend to use kreuzwerker/docker? If so, you must specify that source address in each module which
+│ requires that provider. To see which modules are currently depending on hashicorp/docker, run the following
+│ command:
+│     terraform providers
+╵
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop ?1  rm -rf .terraform .terraform.lock.hcl
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1  terraform init                       ✔ 
+Initializing the backend...
+Initializing modules...
+- vm in ../../modules/vm
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Installing kreuzwerker/docker v3.6.2...
+- Installed kreuzwerker/docker v3.6.2 (self-signed, key ID BD080C4571C6104C)
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://developer.hashicorp.com/terraform/cli/plugins/signing
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?2  terraform plan            ✔  11s  
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with
+the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_network.env_network will be created
+  + resource "docker_network" "env_network" {
+      + driver      = (known after apply)
+      + id          = (known after apply)
+      + internal    = (known after apply)
+      + ipam_driver = "default"
+      + name        = "future20-dev"
+      + options     = (known after apply)
+      + scope       = (known after apply)
+
+      + ipam_config (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+  # module.vm.docker_container.vm will be created
+  + resource "docker_container" "vm" {
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = [
+          + "sleep",
+          + "infinity",
+        ]
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + cpu_shares                                  = 256
+      + entrypoint                                  = (known after apply)
+      + env                                         = [
+          + "ENVIRONMENT=dev",
+        ]
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory                                      = 268435456
+      + must_run                                    = true
+      + name                                        = "future20-vm-dev"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = false
+      + wait_timeout                                = 60
+
+      + healthcheck (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+      + labels {
+          + label = "module"
+          + value = "vm"
+        }
+      + labels {
+          + label = "project"
+          + value = "future-2.0"
+        }
+
+      + networks_advanced {
+          + aliases      = []
+          + name         = "future20-dev"
+            # (2 unchanged attributes hidden)
+        }
+
+      + volumes {
+          + container_path = "/mnt/data"
+          + volume_name    = "future20-vm-dev-data"
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # module.vm.docker_image.vm will be created
+  + resource "docker_image" "vm" {
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "ubuntu:22.04"
+      + repo_digest  = (known after apply)
+    }
+
+  # module.vm.docker_volume.data will be created
+  + resource "docker_volume" "data" {
+      + driver     = (known after apply)
+      + id         = (known after apply)
+      + mountpoint = (known after apply)
+      + name       = "future20-vm-dev-data"
+
+      + labels {
+          + label = "disk-size-gb"
+          + value = "5"
+        }
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + container_id   = (known after apply)
+  + container_name = "future20-vm-dev"
+  + environment    = "dev"
+  + ip_address     = (known after apply)
+  + network_name   = "future20-dev"
+  + volume_name    = "future20-vm-dev-data"
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions
+if you run "terraform apply" now.
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?2  terraform apply                   ✔ 
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with
+the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_network.env_network will be created
+  + resource "docker_network" "env_network" {
+      + driver      = (known after apply)
+      + id          = (known after apply)
+      + internal    = (known after apply)
+      + ipam_driver = "default"
+      + name        = "future20-dev"
+      + options     = (known after apply)
+      + scope       = (known after apply)
+
+      + ipam_config (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+  # module.vm.docker_container.vm will be created
+  + resource "docker_container" "vm" {
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = [
+          + "sleep",
+          + "infinity",
+        ]
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + cpu_shares                                  = 256
+      + entrypoint                                  = (known after apply)
+      + env                                         = [
+          + "ENVIRONMENT=dev",
+        ]
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory                                      = 268435456
+      + must_run                                    = true
+      + name                                        = "future20-vm-dev"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = false
+      + wait_timeout                                = 60
+
+      + healthcheck (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+      + labels {
+          + label = "module"
+          + value = "vm"
+        }
+      + labels {
+          + label = "project"
+          + value = "future-2.0"
+        }
+
+      + networks_advanced {
+          + aliases      = []
+          + name         = "future20-dev"
+            # (2 unchanged attributes hidden)
+        }
+
+      + volumes {
+          + container_path = "/mnt/data"
+          + volume_name    = "future20-vm-dev-data"
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # module.vm.docker_image.vm will be created
+  + resource "docker_image" "vm" {
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "ubuntu:22.04"
+      + repo_digest  = (known after apply)
+    }
+
+  # module.vm.docker_volume.data will be created
+  + resource "docker_volume" "data" {
+      + driver     = (known after apply)
+      + id         = (known after apply)
+      + mountpoint = (known after apply)
+      + name       = "future20-vm-dev-data"
+
+      + labels {
+          + label = "disk-size-gb"
+          + value = "5"
+        }
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + container_id   = (known after apply)
+  + container_name = "future20-vm-dev"
+  + environment    = "dev"
+  + ip_address     = (known after apply)
+  + network_name   = "future20-dev"
+  + volume_name    = "future20-vm-dev-data"
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+module.vm.docker_image.vm: Creating...
+module.vm.docker_volume.data: Creating...
+docker_network.env_network: Creating...
+module.vm.docker_volume.data: Creation complete after 0s [id=future20-vm-dev-data]
+docker_network.env_network: Creation complete after 2s [id=44ce4e9f0065f5740e0413c84ad545149ea5cdadc9323b7fa187ca4fbed194d8]
+module.vm.docker_image.vm: Creation complete after 6s [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+module.vm.docker_container.vm: Creating...
+module.vm.docker_container.vm: Creation complete after 0s [id=70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077]
+
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+container_id = "70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077"
+container_name = "future20-vm-dev"
+environment = "dev"
+ip_address = "172.18.0.2"
+network_name = "future20-dev"
+volume_name = "future20-vm-dev-data"
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?3  docker ps --filter "label=managed-by=terraform"
+CONTAINER ID   IMAGE          COMMAND            CREATED          STATUS          PORTS     NAMES
+70d0aa9b1a82   8ea4cbcf3a26   "sleep infinity"   57 seconds ago   Up 56 seconds             future20-vm-dev
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?3  docker exec future20-vm-dev cat /etc/os-release | head -3
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?3  docker exec future20-vm-dev df -h /mnt/data
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       1.8T  257G  1.5T  15% /mnt/data
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?3                                    ✔ 
+

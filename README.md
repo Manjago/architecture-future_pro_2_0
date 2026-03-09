@@ -1,1 +1,739 @@
-# architecture-future_pro_2_0
+# architecture-future_2_0
+
+Проектная работа 11 спринта курса «Архитектор Про» (Яндекс.Практикум).
+
+**Спринт 11:** Построение архитектуры данных, технологические тренды и миграция в облака.
+
+**Кейс:** компания «Будущее 2.0» — медицинский бизнес с купленным банком, планами интеграции фармкомпаний и производителя электроники. Легаси-стек (SQL Server 2008, PowerBuilder, Apache Camel ESB), сотни терабайт данных, необходимость миграции в облако и перехода на событийную архитектуру.
+
+---
+
+## Общий контекст
+
+### Компания «Будущее 2.0»
+
+Четыре подразделения: головной офис, клиники, ИИ-компания (медицинская диагностика), финтех с банковской лицензией.
+
+**Текущий стек:**
+- DWH на Microsoft SQL Server 2008 (сотни ТБ, значительная часть бизнес-логики в хранимых процедурах)
+- PowerBuilder (клиентский интерфейс оператора)
+- ESB на Apache Camel (интеграционный слой)
+- ИИ-сервисы на Python
+- Финтех-сервисы на Go и Java
+- Power BI (отчётность)
+
+**Проблемы:** медленная отчётность (часы), монолитный DWH как bottleneck, сложность интеграции новых бизнес-направлений, устаревшее оборудование.
+
+### Цели бизнеса
+
+**Промежуточное (пара месяцев):** архитектурное решение сформировано, границы доменов определены, проекты по витрине данных запланированы.
+
+**Финальное (год):** реализован портал самообслуживания, бизнес-пользователи работают с данными в новой архитектуре, допускается сохранение legacy.
+
+**Долгосрочное (три года):** масштабирование (продукты, география, данные), слабосвязанная событийная платформа, домены через события и реактивные потоки, Camel и DWH — только мосты совместимости на этапе миграции.
+
+### Этапы трансформации
+
+1. **0–6 мес.:** пилот в 1–2 доменах, единые принципы событий, DLQ, каталог схем
+2. **6–18 мес.:** расширение на критические домены, потоковые витрины, ACL для Camel и DWH
+3. **18–36 мес.:** отказ от синхронных интеграций на критическом пути, доменная аналитика на потоках
+
+### Две ключевые задачи от руководства
+
+1. **Витрина данных** — портал самообслуживания, масштабируемый независимо от количества бизнес-направлений. Медицинские карты, истории болезни и результаты исследований **не включаются**.
+2. **Архитектурное решение** — изменение IT-ландшафта для интеграции новых направлений без необходимости вносить бизнес-логику в DWH.
+
+---
+
+## Задания
+
+| Задание | Директория | Описание | Статус |
+|---------|-----------|----------|--------|
+| Task 3 | [`Task3Advanced/`](Task3Advanced/) | Целевая C4-архитектура + карта рисков | **Готово** |
+| Task 4 | [`Task4Advanced/`](Task4Advanced/) | DDD, bounded contexts, Event Storming, обоснование | **Готово** |
+| Task 5 | [`Task5Advanced/`](Task5Advanced/) | Техрадар, TCO-анализ, роадмап Data Mesh | **Готово** |
+| Task 1 | [`Task1Advanced/`](Task1Advanced/) | Модульная инфраструктура Terraform (dev/stage/prod) | **Готово** |
+| Task 2 | [`Task2Advanced/`](Task2Advanced/) | CI/CD + удалённое хранение состояния (S3/Minio) | **Готово** |
+
+**Порядок выполнения:** 3 → 4 → 5 → 1 → 2 (сначала архитектура и домены, потом инфраструктура).
+
+---
+
+## Task3Advanced — Проектирование целевой архитектуры и оценка рисков
+
+### Что сделано
+
+1. C4-диаграммы целевой архитектуры (PlantUML, горизонт 3 года)
+2. Карта рисков трансформации (12 рисков, 4 категории)
+3. План управления рисками (меры снижения для каждого риска)
+
+### C4-диаграммы
+
+| Файл | Описание |
+|------|----------|
+| [`c4-context.puml`](Task3Advanced/c4-context.puml) | C4 Level 1 — System Context |
+| [`c4-container.puml`](Task3Advanced/c4-container.puml) | C4 Level 2 — Container Diagram |
+| [`c4-component-bi-portal.puml`](Task3Advanced/c4-component-bi-portal.puml) | C4 Level 3 — Component Diagram (Self-Service BI Portal) |
+
+### C4 Level 1 — System Context
+
+Целевое состояние платформы «Будущее 2.0» через 3 года.
+
+![C4 System Context](Task3Advanced/c4-context.png)
+
+**Персоны:** оператор клиники, врач, бизнес-аналитик, финтех-пользователь, администратор.
+
+**Внешние системы:** фармацевтические компании, производитель мед. оборудования, платёжные системы, регуляторы (ЦБ, Росздравнадзор, Роскомнадзор), облачный провайдер.
+
+### C4 Level 2 — Container Diagram
+
+Основная диаграмма. Слабосвязанная событийная платформа. Домены взаимодействуют через Event Bus (Kafka), внутри доменов — синхронные вызовы (REST/gRPC).
+
+![C4 Container Diagram](Task3Advanced/c4-container.png)
+
+**Домены:**
+- **Медицинский** — Patient Service, Diagnostics Service, Medical DB
+- **Финтех** — Billing Service, Credit Service, Fintech DB
+- **ИИ** — AI Diagnostics Service, Model Registry, AI Storage
+- **Внутренний** — Internal Services (HR, инвентаризация, управление клиниками), Internal DB
+- **Аналитический** — Self-Service BI Portal, Data Ingestion, Analytics Store
+
+**Платформа:** Event Bus (Kafka), Schema Registry, API Gateway (Kong/Envoy), IAM (Keycloak).
+
+**Legacy-мост (на вывод к 36 мес.):** DWH (SQL Server 2008), Camel Bridge (ACL), PowerBuilder UI.
+
+**Визуальные конвенции:**
+- Серый — legacy-компоненты (на вывод)
+- Синий — новые компоненты целевой архитектуры
+- Оранжевый — мосты совместимости (ACL)
+
+### C4 Level 3 — Component Diagram (Self-Service BI Portal)
+
+Декомпозиция ключевого бизнес-требования — портала самообслуживания.
+
+![C4 Component — BI Portal](Task3Advanced/c4-component-bi-portal.png)
+
+**Компоненты:**
+- **Web UI** (React) — SPA для построения отчётов и дашбордов
+- **Report Builder** (Python/FastAPI) — конструктор отчётов: срезы, фильтры, агрегации
+- **Query Engine** (Python/FastAPI) — выполнение аналитических запросов, кэширование
+- **Data Catalog** (Python/FastAPI) — каталог доступных метрик и срезов по доменам
+- **Access Control** (Python/FastAPI) — контроль доступа по ролям и доменам
+- **Data Ingestion** (Kafka Connect/Flink) — подписка на доменные события, трансформация, загрузка проекций
+- **Report Scheduler** (Python/Celery) — планировщик регулярных отчётов
+
+> **Важно:** медицинские карты, истории болезни и результаты мед. исследований **не включаются** в витрину данных (требование бизнеса).
+
+### Карта рисков
+
+Подробности — в [`risk-map.md`](Task3Advanced/risk-map.md), план управления — в [`risk-management-plan.md`](Task3Advanced/risk-management-plan.md).
+
+| ID | Риск | Категория | Вер-ть | Влияние | Уровень |
+|----|------|-----------|--------|---------|---------|
+| R1 | Неверная декомпозиция на домены | Архитектурный | Средняя | Высокое | Высокий |
+| R2 | Eventual consistency не принята бизнесом | Архитектурный | Средняя | Среднее | Средний |
+| R3 | Vendor lock-in | Архитектурный | Средняя | Среднее | Средний |
+| R4 | ACL / Camel Bridge — bottleneck | Архитектурный | Высокая | Высокое | **Критический** |
+| R5 | Потеря данных при миграции DWH | Технологический | Средняя | Высокое | Высокий |
+| R6 | Производительность Event Bus | Технологический | Низкая | Высокое | Средний |
+| R7 | Безопасность при миграции | Технологический | Средняя | Высокое | Высокий |
+| R8 | Нехватка компетенций | Организационный | Высокая | Среднее | Высокий |
+| R9 | Сопротивление изменениям | Организационный | Высокая | Среднее | Высокий |
+| R10 | Двойная нагрузка на команду | Организационный | Высокая | Среднее | Высокий |
+| R11 | Регуляторные нарушения | Бизнес | Низкая | Высокое | Средний |
+| R12 | Превышение бюджета и сроков | Бизнес | Средняя | Высокое | Высокий |
+
+Для каждого риска в плане управления описаны: триггеры, стратегия (избежание / снижение / передача / принятие), конкретные меры с разделением на технические и управленческие.
+
+### Архитектурные решения и осознанные упрощения (Task3)
+
+**Ключевые принципы:**
+- Домены автономны: у каждого своя БД, свои сервисы
+- Межсоменное взаимодействие — только через события (fire-and-forget, Avro)
+- Внутри домена — синхронные вызовы (REST/gRPC)
+- Event Bus (Kafka) + Schema Registry — центральная инфраструктура
+- API Gateway — единая точка входа для внешних клиентов
+
+**Осознанные упрощения:**
+1. Внутренние сервисы (HR, инвентаризация, управление клиниками) объединены во «Внутренний домен». В реальном проекте каждый мог бы стать отдельным bounded context.
+2. Фармацевтические компании и производитель электроники показаны как внешние системы (System_Ext) на Context-диаграмме. Детализация их интеграции — за рамками текущего задания, направления на этапе планирования.
+3. Медицинские карты, истории болезни и результаты исследований явно исключены из витрины данных — в соответствии с требованием бизнеса.
+
+---
+
+## Task4Advanced — Моделирование домена и интеграций
+
+### Что сделано
+
+1. Context Map — схема Bounded Contexts и отношений между ними (PlantUML)
+2. Event Storming — Big Picture диаграмма межконтекстных событий и политик (PlantUML)
+3. Описание агрегатов — границы, инварианты, ключи для каждого BC
+4. Каталог доменных событий — 15 событий с контрактами и подписчиками
+5. Обоснование событийного подхода vs Camel/DWH
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`bounded-contexts.puml`](Task4Advanced/bounded-contexts.puml) | Context Map — Bounded Contexts и отношения |
+| [`event-storming.puml`](Task4Advanced/event-storming.puml) | Event Storming — Big Picture (межконтекстные события и политики) |
+| [`aggregates.md`](Task4Advanced/aggregates.md) | Описание агрегатов (границы, инварианты, ключи) |
+| [`events.md`](Task4Advanced/events.md) | Каталог доменных событий (контракты, подписчики) |
+| [`justification.md`](Task4Advanced/justification.md) | Обоснование событийного подхода vs Camel/DWH |
+
+### Context Map — Bounded Contexts
+
+7 Bounded Contexts, выделенных по принципам DDD:
+
+![Context Map](Task4Advanced/bounded-contexts.png)
+
+| Домен | Bounded Context | Ключевые агрегаты |
+|-------|----------------|------------------|
+| Медицинский | Patient Management | Patient |
+| Медицинский | Diagnostics | DiagnosticOrder |
+| Финтех | Billing | Invoice, Payment |
+| Финтех | Credit | CreditContract |
+| ИИ | AI Diagnostics | AIAnalysis, ScoringModel |
+| Внутренний | Internal Operations | Employee, InventoryItem |
+| Аналитический | Analytics & BI | Report |
+
+**Типы отношений между контекстами:**
+
+| Цвет на диаграмме | Тип отношения | Описание |
+|-------------------|---------------|----------|
+| Фиолетовый | Partnership | Равноправная со-эволюция (Patient Mgmt ↔ Diagnostics, Diagnostics ↔ AI) |
+| Зелёный | Customer–Supplier (U→D) | Upstream публикует события, downstream подписан [OHS/PL: Avro] |
+| Серый | Conformist | Downstream принимает модель upstream as-is (регуляторы, платёжные системы) |
+| Оранжевый | ACL | Anti-Corruption Layer — трансляция legacy → events (Legacy Bridge) |
+
+**Shared Kernel:** общие идентификаторы (PatientId, ClinicId, EmployeeId, Money), используемые всеми BC.
+
+### Event Storming — Big Picture
+
+Межконтекстные события и политики — как домены связаны через события.
+
+![Event Storming](Task4Advanced/event-storming.png)
+
+**5 межконтекстных политик (ключевые интеграции):**
+
+| # | Событие-триггер | Политика | Целевой BC |
+|---|----------------|----------|------------|
+| 1 | PatientRegistered | → Создать счёт за первичный приём | Billing |
+| 2 | ResearchOrdered | → Запустить ИИ-анализ | AI Diagnostics |
+| 3 | ResearchCompleted | → ИИ-анализ результатов исследований | AI Diagnostics |
+| 4 | CreditContractCreated | → Запустить скоринг | AI Diagnostics |
+| 5 | ScoringCompleted | → Принять кредитное решение | Credit |
+
+Все доменные события поступают в **Analytics & BI** (downstream) для обновления аналитических проекций.
+
+### Агрегаты
+
+10 агрегатов в 7 BC. Для каждого описаны: корень, ID, внутренние объекты, инварианты, публикуемые события. Подробности — в [`aggregates.md`](Task4Advanced/aggregates.md).
+
+**Ключевые принципы:**
+- Ссылки между агрегатами — только по ID (не прямые ссылки)
+- Один агрегат — одна транзакция
+- Согласованность между агрегатами — через события (eventual consistency)
+
+### Каталог событий
+
+15 доменных событий. Для каждого описаны: источник, агрегат, семантика, подписчики, минимальный контракт (payload). Подробности — в [`events.md`](Task4Advanced/events.md).
+
+**Сводная таблица:**
+
+| # | Событие | Источник | Подписчики |
+|---|---------|----------|------------|
+| 1 | PatientRegistered | Patient Management | Billing, Analytics |
+| 2 | PatientUpdated | Patient Management | Analytics |
+| 3 | ResearchOrdered | Diagnostics | AI Diagnostics, Analytics |
+| 4 | ResearchCompleted | Diagnostics | AI Diagnostics, Analytics |
+| 5 | AIDiagnosisCompleted | AI Diagnostics | Analytics |
+| 6 | AIDiagnosisFailed | AI Diagnostics | Analytics |
+| 7 | ScoringCompleted | AI Diagnostics | Credit, Analytics |
+| 8 | InvoiceCreated | Billing | Analytics |
+| 9 | PaymentReceived | Billing | Analytics |
+| 10 | CreditContractCreated | Credit | AI Diagnostics, Analytics |
+| 11 | CreditApproved | Credit | Analytics |
+| 12 | CreditRejected | Credit | Analytics |
+| 13 | EmployeeHired | Internal Operations | Analytics |
+| 14 | InventoryUpdated | Internal Operations | Analytics |
+| 15 | ReportGenerated | Analytics & BI | — (внутреннее) |
+
+Все события передаются через Event Bus (Kafka) в формате **Avro**, версионируются через **Schema Registry**. Стандартный конверт включает `correlationId` для сквозной трассировки цепочек.
+
+### Обоснование событийного подхода
+
+Подробности — в [`justification.md`](Task4Advanced/justification.md).
+
+**Кратко:** текущая архитектура (Camel + DWH) создаёт тесную связность, batch-отчётность с задержкой в часы и невозможность добавления новых направлений без модификации центрального хранилища. Событийный подход решает все три проблемы: слабая связность (fire-and-forget), near-real-time (секунды вместо часов), масштабируемость (новый BC = подписка на топики, без изменения существующих доменов).
+
+---
+
+## Task5Advanced — Проектирование технологического стека и расчёт стоимости
+
+### Что сделано
+
+1. Расширенный технологический радар (технологии + архитектурные паттерны, 4 квадранта × 4 кольца)
+2. TCO-анализ текущей vs целевой архитектуры на горизонте 3 лет
+3. Стратегический роадмап внедрения Data Mesh (3 этапа, 6 ролей, 8 milestones)
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`tech-radar.md`](Task5Advanced/tech-radar.md) | Расширенный технологический радар (таблица с обоснованиями) |
+| [`tech-radar.svg`](Task5Advanced/tech-radar.svg) | Визуализация техрадара (SVG, 4 квадранта × 4 кольца) |
+| [`tco-analysis.md`](Task5Advanced/tco-analysis.md) | TCO-анализ (текущая vs целевая архитектура, 3 года) |
+| [`roadmap.md`](Task5Advanced/roadmap.md) | Стратегический роадмап внедрения Data Mesh |
+| [`roadmap.puml`](Task5Advanced/roadmap.puml) | Gantt-диаграмма роадмапа (PlantUML) |
+
+### Технологический радар
+
+Расширенный радар включает технологии и архитектурные паттерны. 4 квадранта (Techniques, Platforms, Tools, Languages & Frameworks) × 4 кольца (Adopt, Trial, Assess, Hold).
+
+![Tech Radar](Task5Advanced/tech-radar.svg)
+
+**Сводка по кольцам:**
+
+| Кольцо | Techniques | Platforms | Tools | Languages & Frameworks |
+|--------|-----------|-----------|-------|----------------------|
+| **Adopt** | EDA, DDD, IaC, ACL | Kafka, PostgreSQL, K8s, S3 | Terraform, Keycloak, Kong/Envoy, Schema Registry, Kafka Connect, Grafana+Prometheus | Java/Kotlin, Python+FastAPI, Go, React |
+| **Trial** | Data Mesh, Self-Service BI | ClickHouse, Managed Cloud | Flink, MLflow, Jaeger/Zipkin | — |
+| **Assess** | CQRS, Event Sourcing | — | — | — |
+| **Hold** | Batch ETL, P2P Integration | SQL Server 2008 | Power BI, PowerBuilder | PowerBuilder |
+
+**Ключевые решения:**
+- **EDA, DDD, IaC — Adopt.** Фундамент целевой архитектуры, проверен в Task3–4.
+- **Data Mesh, Self-Service BI — Trial.** Внедряются поэтапно, начиная с пилота. Переход в Adopt после валидации.
+- **CQRS, Event Sourcing — Assess.** Потенциально полезны (финтех, audit trail), но требуют отдельного PoC.
+- **SQL Server 2008, PowerBuilder, Power BI, Batch ETL, P2P Integration — Hold.** Весь текущий стек — на вывод с планом замены.
+
+### TCO-анализ
+
+Сравнение совокупной стоимости владения на горизонте 3 лет. Единица измерения: 1 у.е. = стоимость одного инженера в год (FTE).
+
+**Сравнение по годам:**
+
+| Год | As-Is | To-Be | Разница |
+|-----|-------|-------|---------|
+| Год 1 | 18.0 | 29.0 | +11.0 (инвестиция) |
+| Год 2 | 19.4 | 22.0 | +2.6 (инвестиция) |
+| Год 3 | 21.0 | 16.0 | −5.0 (экономия) |
+| **Итого** | **58.4** | **67.0** | **+8.6** |
+
+**Ключевые выводы:**
+- На горизонте 3 лет целевая архитектура дороже на ~15% — плата за миграцию и параллельную работу двух миров.
+- **Точка окупаемости — 4-й год (~42 мес.).** После этого экономия 5–8 у.е./год с нарастающим эффектом.
+- Основной драйвер затрат — **персонал** (50%+ от TCO). В as-is дорожает (дефицит legacy-специалистов), в to-be — стабилизируется.
+- Основной драйвер экономии — **устранение неэффективности** (10.5 → 3.5 у.е. за 3 года, экономия 7.0).
+- **Неденежные факторы** усиливают аргумент: security-риск SQL Server 2008 (end-of-life), time-to-market, масштабируемость, привлечение кадров.
+- **Рекомендация:** трансформация экономически обоснована, особенно с учётом нарастающих рисков as-is.
+
+Подробности: допущения, разбивка по статьям затрат, sensitivity analysis — в [`tco-analysis.md`](Task5Advanced/tco-analysis.md).
+
+### Роадмап внедрения Data Mesh
+
+Три этапа, синхронизированные с общими этапами трансформации и TCO-анализом.
+
+![Roadmap](Task5Advanced/roadmap.png)
+
+**Этапы:**
+
+| Этап | Период | Цель | Ключевые результаты |
+|------|--------|------|-------------------|
+| **1. Пилот** | 0–6 мес. | Валидация подхода на 1–2 доменах | Billing и Patient Management публикуют data products, прототип BI Portal, governance-стандарты, Camel Bridge (ACL), обучение команды |
+| **2. Масштабирование** | 6–18 мес. | Все домены в Data Mesh, запуск BI Portal | Все 7 BC публикуют data products, Self-Service BI Portal (GA), вывод Power BI, сокращение Camel, переквалификация legacy-специалистов |
+| **3. Зрелость** | 18–36 мес. | Полный переход, новые направления | Подключение фармы и электроники, вывод legacy (SQL Server, PowerBuilder, Camel), потоковая аналитика, подготовка к новым регионам |
+
+**Ключевые роли:**
+
+| Роль | Описание |
+|------|----------|
+| Data Product Owner | Владелец data product домена: состав, SLA, бэклог, governance. На старте 2 (пилот), к Этапу 3 — в каждом домене. |
+| Data Engineer (доменный) | Строит пайплайны публикации data product внутри домена. |
+| Platform Data Engineer | Развивает Self-Serve Data Platform (Kafka, ClickHouse, Data Catalog). |
+| BI-аналитик | Потребитель data products: отчёты и дашборды в Self-Service BI Portal. |
+| Governance Lead | Координация стандартов, эскалация конфликтов между доменами. |
+| Security Champion | Аудит безопасности, compliance (ФЗ-152, ЦБ), data residency. |
+
+**Контрольные точки (milestones):** 8 go/no-go точек от месяца 3 до месяца 36. Подробности — в [`roadmap.md`](Task5Advanced/roadmap.md).
+
+### Связь артефактов Task5
+
+Три артефакта — три проекции одного решения:
+- **Tech Radar** отвечает на вопрос **«что»**: какие технологии и паттерны используем (Adopt), пробуем (Trial), от чего отказываемся (Hold).
+- **TCO** отвечает на вопрос **«сколько»**: стоимость текущего и целевого состояния, точка окупаемости, обоснование инвестиции.
+- **Роадмап** отвечает на вопрос **«когда»**: этапы внедрения, роли, milestones, привязка к бизнес-целям.
+
+---
+
+## Task1Advanced — Модульная инфраструктура Terraform
+
+### Что сделано
+
+1. Переиспользуемый модуль `vm_module` (Docker-провайдер как локальная замена облачного)
+2. Три окружения (dev, stage, prod) с разными конфигурациями через `.tfvars`
+3. README модуля с описанием параметров, выходов и инструкцией по запуску
+
+### Выбор провайдера
+
+В качестве провайдера используется **Docker** (`kreuzwerker/docker`). Docker-контейнер выступает аналогом виртуальной машины: имеет ограничения CPU/RAM, подключаемый том (volume) и привязку к изолированной сети. Принципы модульности и параметризации полностью идентичны облачному провайдеру — при переезде в облако меняются только ресурсы в `main.tf` модуля, интерфейс (`variables.tf`, `outputs.tf`) остаётся тем же.
+
+| Концепция задания | Реализация (Docker) | Облачный аналог |
+|---|---|---|
+| Виртуальная машина | `docker_container` | `yandex_compute_instance` |
+| Количество ядер | `cpu_shares` | `resources.cores` |
+| Объём RAM | `memory` | `resources.memory` |
+| Подключаемый диск | `docker_volume` + mount | `yandex_compute_disk` |
+| Subnet ID | `docker_network` | `yandex_vpc_subnet` |
+| SSH-ключ | Environment variable | `metadata.ssh-keys` |
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`modules/vm/main.tf`](Task1Advanced/modules/vm/main.tf) | Ресурсы: docker_image, docker_volume, docker_container |
+| [`modules/vm/variables.tf`](Task1Advanced/modules/vm/variables.tf) | Входные параметры модуля (9 переменных с валидацией) |
+| [`modules/vm/outputs.tf`](Task1Advanced/modules/vm/outputs.tf) | Выходные значения (8 outputs) |
+| [`envs/dev/terraform.tfvars`](Task1Advanced/envs/dev/terraform.tfvars) | Конфигурация dev-окружения |
+| [`envs/stage/terraform.tfvars`](Task1Advanced/envs/stage/terraform.tfvars) | Конфигурация stage-окружения |
+| [`envs/prod/terraform.tfvars`](Task1Advanced/envs/prod/terraform.tfvars) | Конфигурация prod-окружения |
+| [`README.md`](Task1Advanced/README.md) | Документация модуля |
+
+### Структура
+
+```
+Task1Advanced/
+├── modules/
+│   └── vm/
+│       ├── main.tf          # Ресурсы: image, volume, container
+│       ├── variables.tf     # Входные параметры модуля
+│       └── outputs.tf       # Выходные значения
+├── envs/
+│   ├── dev/
+│   │   ├── provider.tf      # Провайдер Docker
+│   │   ├── main.tf          # Сеть + вызов модуля
+│   │   ├── variables.tf     # Переменные окружения
+│   │   ├── outputs.tf       # Выходные значения окружения
+│   │   └── terraform.tfvars # Конфигурация dev
+│   ├── stage/
+│   │   └── ...              # Аналогичная структура
+│   └── prod/
+│       └── ...              # Аналогичная структура
+└── README.md
+```
+
+### Параметры модуля
+
+| Параметр | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `environment` | `string` | — (обязательный) | Имя окружения: `dev`, `stage`, `prod` |
+| `container_name` | `string` | `"vm"` | Базовое имя контейнера |
+| `image` | `string` | `"ubuntu:22.04"` | Docker-образ |
+| `cpu_shares` | `number` | `256` | CPU shares (1024 = 1 ядро) |
+| `memory` | `number` | `256` | RAM в МБ |
+| `disk_size_gb` | `number` | `5` | Размер подключаемого диска в ГБ |
+| `disk_mount_path` | `string` | `"/mnt/data"` | Точка монтирования диска |
+| `network_name` | `string` | — (обязательный) | Имя Docker-сети |
+| `ssh_public_key` | `string` | `""` | Публичный SSH-ключ |
+| `labels` | `map(string)` | `{}` | Дополнительные метки |
+
+### Конфигурации окружений
+
+| Параметр | dev | stage | prod |
+|---|---|---|---|
+| CPU shares | 256 (¼ ядра) | 512 (½ ядра) | 1024 (1 ядро) |
+| Memory | 256 МБ | 512 МБ | 1024 МБ |
+| Disk | 5 ГБ | 10 ГБ | 20 ГБ |
+
+### Принципы
+
+- **Никакого хардкода в модуле.** Все значения — через переменные. Модуль не знает, в каком окружении работает.
+- **Валидация входов.** Переменные `environment`, `cpu_shares`, `memory`, `disk_size_gb` валидируются на уровне модуля.
+- **Метки (labels).** Все ресурсы помечены: `managed-by=terraform`, `environment={env}`, `module=vm`.
+- **Изоляция окружений.** Каждое окружение — отдельная Docker-сеть, отдельный state, отдельные ресурсы.
+
+### Как запустить
+
+```bash
+cd Task1Advanced/envs/dev
+terraform init
+terraform plan                           # посмотреть, что будет создано
+terraform apply                          # применить (подхватит terraform.tfvars)
+terraform apply -var-file=terraform.tfvars  # или явно указать var-file
+```
+
+---
+
+## Task2Advanced — CI/CD и удалённое хранение состояния
+
+### Что сделано
+
+1. Terraform-конфигурация с S3-совместимым backend (MinIO)
+2. CI/CD pipeline на GitHub Actions (validate → plan → apply, каскад dev → stage → prod)
+3. Локальные скрипты для запуска (init-backend, plan, apply, destroy)
+4. Docker Compose для MinIO
+
+### Remote Backend
+
+State хранится в MinIO (локальный S3-совместимый сервер). Каждое окружение — отдельный ключ в бакете:
+
+```
+terraform-state/
+├── dev/terraform.tfstate
+├── stage/terraform.tfstate
+└── prod/terraform.tfstate
+```
+
+Ключ задаётся при инициализации: `terraform init -backend-config="key=dev/terraform.tfstate"`. Это обеспечивает изоляцию — apply в dev не затрагивает state prod.
+
+### Артефакты
+
+| Файл | Описание |
+|------|----------|
+| [`provider.tf`](Task2Advanced/provider.tf) | Провайдер Docker + S3 backend (MinIO) |
+| [`main.tf`](Task2Advanced/main.tf) | Сеть + вызов модуля vm из Task1Advanced |
+| [`variables.tf`](Task2Advanced/variables.tf) | Входные переменные |
+| [`outputs.tf`](Task2Advanced/outputs.tf) | Выходные значения |
+| [`envs/dev.tfvars`](Task2Advanced/envs/dev.tfvars) | Конфигурация dev |
+| [`envs/stage.tfvars`](Task2Advanced/envs/stage.tfvars) | Конфигурация stage |
+| [`envs/prod.tfvars`](Task2Advanced/envs/prod.tfvars) | Конфигурация prod |
+| [`docker-compose.yml`](Task2Advanced/docker-compose.yml) | MinIO (локальный S3) |
+| [`scripts/init-backend.sh`](Task2Advanced/scripts/init-backend.sh) | Запуск MinIO + создание бакета |
+| [`scripts/plan.sh`](Task2Advanced/scripts/plan.sh) | terraform init + validate + plan |
+| [`scripts/apply.sh`](Task2Advanced/scripts/apply.sh) | terraform apply из сохранённого плана |
+| [`scripts/destroy.sh`](Task2Advanced/scripts/destroy.sh) | terraform destroy |
+| [`.github/workflows/terraform.yml`](Task2Advanced/.github/workflows/terraform.yml) | GitHub Actions CI/CD pipeline |
+| [`README.md`](Task2Advanced/README.md) | Документация |
+
+### Структура
+
+```
+Task2Advanced/
+├── provider.tf              # Провайдер Docker + S3 backend (MinIO)
+├── main.tf                  # Сеть + вызов модуля vm из Task1Advanced
+├── variables.tf             # Входные переменные
+├── outputs.tf               # Выходные значения
+├── envs/
+│   ├── dev.tfvars           # Конфигурация dev
+│   ├── stage.tfvars         # Конфигурация stage
+│   └── prod.tfvars          # Конфигурация prod
+├── docker-compose.yml       # MinIO (локальный S3)
+├── scripts/
+│   ├── init-backend.sh      # Запуск MinIO + создание бакета
+│   ├── plan.sh              # terraform init + validate + plan
+│   ├── apply.sh             # terraform apply (из сохранённого плана)
+│   └── destroy.sh           # terraform destroy
+├── .github/
+│   └── workflows/
+│       └── terraform.yml    # GitHub Actions CI/CD pipeline
+└── README.md
+```
+
+### CI/CD Pipeline — GitHub Actions
+
+```
+PR создан
+  └─→ validate (fmt + validate)
+  └─→ plan (dev, stage, prod — параллельно)
+
+Push в main
+  └─→ validate
+  └─→ plan (dev, stage, prod)
+  └─→ apply dev     (автоматически)
+  └─→ apply stage   (автоматически, после dev)
+  └─→ apply prod    (РУЧНОЕ подтверждение)
+```
+
+**Ключевые решения:**
+- **Plan → артефакт → Apply.** Apply использует сохранённый план, а не пересчитывает. Гарантия: применяется именно то, что показал plan.
+- **Каскадный apply: dev → stage → prod.** Проблема на dev не доедет до prod.
+- **Ручное подтверждение для prod.** GitHub Environment Protection Rules — кто-то должен нажать кнопку.
+- **Секреты через GitHub Secrets.** Access/secret key — не в коде, а в `${{ secrets.MINIO_ACCESS_KEY }}`.
+- **Concurrency group.** Параллельные pipeline для одного ref не запускаются — защита от конфликтов state.
+
+### Связь с Task1Advanced
+
+Task2Advanced переиспользует модуль из Task1Advanced (`source = "../Task1Advanced/modules/vm"`), демонстрируя ключевое свойство модулей Terraform — один модуль, множество контекстов использования.
+
+### Как запустить локально
+
+```bash
+cd Task2Advanced
+./scripts/init-backend.sh    # запуск MinIO + создание бакета
+./scripts/plan.sh dev        # init + validate + plan
+./scripts/apply.sh dev       # apply из сохранённого плана
+terraform output             # проверка
+./scripts/destroy.sh dev     # очистка
+```
+
+---
+
+## Тестирование
+
+Все задания Task1Advanced и Task2Advanced протестированы на реальной машине. Ниже — окружение, найденные проблемы и их решения, результаты прогона.
+
+Полные логи тестирования: [`logs/`](logs/) ([Task1](logs/task1-testing.log), [Task2](logs/task2-testing.log)).
+
+### Окружение
+
+| Компонент | Версия |
+|-----------|--------|
+| OS | Manjaro Linux (Arch-based) |
+| Terraform | 1.14.5 |
+| Docker | 29.2.1 |
+| Docker Provider | kreuzwerker/docker 3.6.2 |
+| MinIO Client | RELEASE.2025-08-13 (`mcli`) |
+| MinIO Server | latest (Docker image) |
+
+### Проблемы, найденные при тестировании
+
+#### 1. HashiCorp заблокировал доступ к registry.terraform.io из РФ
+
+При `terraform init` — ответ `"Content not available in your region"` и ссылка на [trade controls](https://www.hashicorp.com/trade-controls).
+
+**Решение:** SOCKS5-прокси через VLESS/XRay:
+
+```bash
+export HTTPS_PROXY=socks5://127.0.0.1:10808
+export HTTP_PROXY=socks5://127.0.0.1:10808
+terraform init  # работает
+```
+
+Удобная обёртка для `.zshrc`:
+
+```bash
+proxy() {
+  export HTTPS_PROXY=socks5://127.0.0.1:10808
+  export HTTP_PROXY=socks5://127.0.0.1:10808
+  echo "✓ Proxy on"
+}
+noproxy() { unset HTTPS_PROXY HTTP_PROXY; echo "✓ Proxy off"; }
+```
+
+> **Примечание:** прокси нужен только для `terraform init` (скачивание провайдеров из registry). После init провайдеры кешируются локально, и для `plan`/`apply` прокси не требуется.
+
+#### 2. Модуль не объявлял `required_providers`
+
+Terraform искал провайдер `hashicorp/docker` (дефолт) вместо `kreuzwerker/docker`.
+
+**Решение:** добавлен блок `terraform { required_providers }` в `modules/vm/main.tf` — стандартная практика, модуль должен явно заявлять свои зависимости.
+
+#### 3. MinIO Client на Arch/Manjaro называется `mcli`, а не `mc`
+
+Пакет `minio-client` ставится через `pacman`, но бинарник переименован в `mcli`, чтобы не конфликтовать с Midnight Commander (`mc`).
+
+**Решение:** скрипт `init-backend.sh` автоматически определяет имя бинарника:
+
+```bash
+if command -v mcli &> /dev/null; then MC=mcli
+elif command -v mc &> /dev/null; then MC=mc
+else echo "MinIO Client не найден"; exit 1; fi
+```
+
+#### 4. Скрипты не имели executable bit
+
+Git хранит permission bits, без `chmod +x` скрипты не запускались.
+
+**Решение:** `chmod +x scripts/*.sh` + коммит (Git фиксирует `100644 → 100755`).
+
+### Результаты: Task1Advanced
+
+Полный цикл `init → plan → apply → verify → destroy` для dev-окружения.
+
+**terraform plan** — 4 ресурса:
+
+```
+Plan: 4 to add, 0 to change, 0 to destroy.
+  + docker_network.env_network       (future20-dev)
+  + module.vm.docker_image.vm        (ubuntu:22.04)
+  + module.vm.docker_volume.data     (future20-vm-dev-data)
+  + module.vm.docker_container.vm    (future20-vm-dev, cpu_shares=256, memory=268435456)
+```
+
+**terraform apply** — успешно:
+
+```
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+
+Outputs:
+  container_id   = "70d0aa9b..."
+  container_name = "future20-vm-dev"
+  environment    = "dev"
+  ip_address     = "172.18.0.2"
+  network_name   = "future20-dev"
+  volume_name    = "future20-vm-dev-data"
+```
+
+**Верификация:**
+
+```bash
+$ docker ps --filter "label=managed-by=terraform"
+CONTAINER ID   IMAGE          COMMAND            STATUS          NAMES
+70d0aa9b1a82   8ea4cbcf3a26   "sleep infinity"   Up 56 seconds   future20-vm-dev
+
+$ docker exec future20-vm-dev cat /etc/os-release | head -3
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+
+$ docker exec future20-vm-dev df -h /mnt/data
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       1.8T  257G  1.5T  15% /mnt/data
+```
+
+**terraform destroy** — чисто, 4 ресурса удалены.
+
+### Результаты: Task2Advanced
+
+Полный цикл `init-backend → plan → apply → verify state → destroy`.
+
+**init-backend.sh** — MinIO запущен, бакет создан:
+
+```
+MinIO Client: mcli
+=== 1. Запуск MinIO ===
+ ✔ Container terraform-minio Created
+=== 4. Создание бакета 'terraform-state' ===
+Bucket created successfully `local/terraform-state`.
+```
+
+**plan.sh dev** — backend S3 подключен, 4 ресурса:
+
+```
+Successfully configured the backend "s3"!
+=== terraform validate ===
+Success! The configuration is valid.
+Plan: 4 to add, 0 to change, 0 to destroy.
+=== План сохранён: tfplan-dev ===
+```
+
+**apply.sh dev** — успешно:
+
+```
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+Outputs:
+  container_name = "future20-vm-dev"
+  ip_address     = "172.19.0.2"
+  volume_name    = "future20-vm-dev-data"
+```
+
+**State в MinIO** — ключевая проверка:
+
+```bash
+$ mcli ls local/terraform-state/dev/
+[2026-03-09 10:28:04 MSK] 9.6KiB STANDARD terraform.tfstate
+```
+
+State хранится удалённо в MinIO, не локально — требование задания выполнено.
+
+**destroy.sh dev + docker compose down** — чисто, все ресурсы удалены, MinIO остановлен.
+
+## Инструменты
+
+- **Диаграммы:** PlantUML с C4-PlantUML (`!include` из [plantuml-stdlib/C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML))
+- **Рендеринг:** [planttext.com](https://www.planttext.com/)
+- **IaC:** Terraform + Docker Provider (локальная замена облачного провайдера)
+- **Remote State:** MinIO (локальный S3-совместимый backend)
+- **CI/CD:** GitHub Actions
+- **Репозиторий:** GitHub (публичный)

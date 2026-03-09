@@ -1,0 +1,703 @@
+terraform destroy                 ✔ 
+module.vm.docker_image.vm: Refreshing state... [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+module.vm.docker_volume.data: Refreshing state... [id=future20-vm-dev-data]
+docker_network.env_network: Refreshing state... [id=44ce4e9f0065f5740e0413c84ad545149ea5cdadc9323b7fa187ca4fbed194d8]
+module.vm.docker_container.vm: Refreshing state... [id=70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with
+the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # docker_network.env_network will be destroyed
+  - resource "docker_network" "env_network" {
+      - attachable   = false -> null
+      - driver       = "bridge" -> null
+      - id           = "44ce4e9f0065f5740e0413c84ad545149ea5cdadc9323b7fa187ca4fbed194d8" -> null
+      - ingress      = false -> null
+      - internal     = false -> null
+      - ipam_driver  = "default" -> null
+      - ipam_options = {} -> null
+      - ipv6         = false -> null
+      - name         = "future20-dev" -> null
+      - options      = {} -> null
+      - scope        = "local" -> null
+
+      - ipam_config {
+          - aux_address = {} -> null
+          - gateway     = "172.18.0.1" -> null
+          - subnet      = "172.18.0.0/16" -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+    }
+
+  # module.vm.docker_container.vm will be destroyed
+  - resource "docker_container" "vm" {
+      - attach                                      = false -> null
+      - command                                     = [
+          - "sleep",
+          - "infinity",
+        ] -> null
+      - container_read_refresh_timeout_milliseconds = 15000 -> null
+      - cpu_shares                                  = 256 -> null
+      - dns                                         = [] -> null
+      - dns_opts                                    = [] -> null
+      - dns_search                                  = [] -> null
+      - entrypoint                                  = [] -> null
+      - env                                         = [
+          - "ENVIRONMENT=dev",
+        ] -> null
+      - group_add                                   = [] -> null
+      - hostname                                    = "70d0aa9b1a82" -> null
+      - id                                          = "70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077" -> null
+      - image                                       = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fd" -> null
+      - init                                        = false -> null
+      - ipc_mode                                    = "private" -> null
+      - log_driver                                  = "json-file" -> null
+      - log_opts                                    = {} -> null
+      - logs                                        = false -> null
+      - max_retry_count                             = 0 -> null
+      - memory                                      = 268435456 -> null
+      - memory_swap                                 = 536870912 -> null
+      - must_run                                    = true -> null
+      - name                                        = "future20-vm-dev" -> null
+      - network_data                                = [
+          - {
+              - gateway                   = "172.18.0.1"
+              - global_ipv6_prefix_length = 0
+              - ip_address                = "172.18.0.2"
+              - ip_prefix_length          = 16
+              - mac_address               = "5e:df:97:a3:7f:08"
+              - network_name              = "future20-dev"
+                # (2 unchanged attributes hidden)
+            },
+        ] -> null
+      - network_mode                                = "bridge" -> null
+      - privileged                                  = false -> null
+      - publish_all_ports                           = false -> null
+      - read_only                                   = false -> null
+      - remove_volumes                              = true -> null
+      - restart                                     = "unless-stopped" -> null
+      - rm                                          = false -> null
+      - runtime                                     = "runc" -> null
+      - security_opts                               = [] -> null
+      - shm_size                                    = 64 -> null
+      - start                                       = true -> null
+      - stdin_open                                  = false -> null
+      - stop_timeout                                = 0 -> null
+      - storage_opts                                = {} -> null
+      - sysctls                                     = {} -> null
+      - tmpfs                                       = {} -> null
+      - tty                                         = false -> null
+      - wait                                        = false -> null
+      - wait_timeout                                = 60 -> null
+        # (8 unchanged attributes hidden)
+
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+      - labels {
+          - label = "module" -> null
+          - value = "vm" -> null
+        }
+      - labels {
+          - label = "project" -> null
+          - value = "future-2.0" -> null
+        }
+
+      - networks_advanced {
+          - aliases      = [] -> null
+          - name         = "future20-dev" -> null
+            # (2 unchanged attributes hidden)
+        }
+
+      - volumes {
+          - container_path = "/mnt/data" -> null
+          - read_only      = false -> null
+          - volume_name    = "future20-vm-dev-data" -> null
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # module.vm.docker_image.vm will be destroyed
+  - resource "docker_image" "vm" {
+      - id           = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04" -> null
+      - image_id     = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fd" -> null
+      - keep_locally = true -> null
+      - name         = "ubuntu:22.04" -> null
+      - repo_digest  = "ubuntu@sha256:3ba65aa20f86a0fad9df2b2c259c613df006b2e6d0bfcc8a146afb8c525a9751" -> null
+    }
+
+  # module.vm.docker_volume.data will be destroyed
+  - resource "docker_volume" "data" {
+      - driver      = "local" -> null
+      - driver_opts = {} -> null
+      - id          = "future20-vm-dev-data" -> null
+      - mountpoint  = "/var/lib/docker/volumes/future20-vm-dev-data/_data" -> null
+      - name        = "future20-vm-dev-data" -> null
+
+      - labels {
+          - label = "disk-size-gb" -> null
+          - value = "5" -> null
+        }
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+    }
+
+Plan: 0 to add, 0 to change, 4 to destroy.
+
+Changes to Outputs:
+  - container_id   = "70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077" -> null
+  - container_name = "future20-vm-dev" -> null
+  - environment    = "dev" -> null
+  - ip_address     = "172.18.0.2" -> null
+  - network_name   = "future20-dev" -> null
+  - volume_name    = "future20-vm-dev-data" -> null
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value:yes
+
+module.vm.docker_container.vm: Destroying... [id=70d0aa9b1a82fef6c4c331f8f36fdcc3330b35683b68bf36aa3f1f6171eb1077]
+module.vm.docker_container.vm: Destruction complete after 0s
+module.vm.docker_volume.data: Destroying... [id=future20-vm-dev-data]
+module.vm.docker_image.vm: Destroying... [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+docker_network.env_network: Destroying... [id=44ce4e9f0065f5740e0413c84ad545149ea5cdadc9323b7fa187ca4fbed194d8]
+module.vm.docker_image.vm: Destruction complete after 0s
+module.vm.docker_volume.data: Destruction complete after 2s
+docker_network.env_network: Destruction complete after 2s
+
+Destroy complete! Resources: 4 destroyed.
+    ~/p/a/11/architecture-future_pro_2_0/Task1/e/dev    develop !1 ?4  cd ../../../Task2Advanced
+./scripts/init-backend.sh
+MinIO Client: mcli
+
+=== 1. Запуск MinIO ===
+[+] up 3/3
+ ✔ Network task2advanced_default   Created                                                                      0.0s
+ ✔ Volume task2advanced_minio-data Created                                                                      0.0s
+ ✔ Container terraform-minio       Created                                                                      0.0s
+
+=== 2. Ожидание готовности MinIO ===
+  Ожидание... (1/30)
+MinIO готов.
+
+=== 3. Настройка MinIO Client ===
+mcli: Configuration written to `/home/kirill/.mcli/config.json`. Please update your access credentials.
+mcli: Successfully created `/home/kirill/.mcli/share`.
+mcli: Initialized share uploads `/home/kirill/.mcli/share/uploads.json` file.
+mcli: Initialized share downloads `/home/kirill/.mcli/share/downloads.json` file.Added `local` successfully.
+
+=== 4. Создание бакета 'terraform-state' ===
+Bucket created successfully `local/terraform-state`.
+Бакет 'terraform-state' создан.
+
+=== Готово ===
+MinIO:       http://localhost:9000
+Консоль:     http://localhost:9001 (minioadmin/minioadmin)
+Бакет:       terraform-state
+
+Следующий шаг:
+  ./scripts/plan.sh dev    # plan для dev-окружения
+    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4  ./scripts/plan.sh dev           ✔ 
+=== Окружение: dev ===
+
+=== terraform init ===
+Initializing the backend...
+
+Successfully configured the backend "s3"! Terraform will automatically
+use this backend unless the backend configuration changes.
+Initializing modules...
+- vm in ../Task1Advanced/modules/vm
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Installing kreuzwerker/docker v3.6.2...
+- Installed kreuzwerker/docker v3.6.2 (self-signed, key ID BD080C4571C6104C)
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://developer.hashicorp.com/terraform/cli/plugins/signing
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+=== terraform validate ===
+Success! The configuration is valid.
+
+
+=== terraform plan ===
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with
+the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_network.env_network will be created
+  + resource "docker_network" "env_network" {
+      + driver      = (known after apply)
+      + id          = (known after apply)
+      + internal    = (known after apply)
+      + ipam_driver = "default"
+      + name        = "future20-dev"
+      + options     = (known after apply)
+      + scope       = (known after apply)
+
+      + ipam_config (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+  # module.vm.docker_container.vm will be created
+  + resource "docker_container" "vm" {
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = [
+          + "sleep",
+          + "infinity",
+        ]
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + cpu_shares                                  = 256
+      + entrypoint                                  = (known after apply)
+      + env                                         = [
+          + "ENVIRONMENT=dev",
+        ]
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory                                      = 268435456
+      + must_run                                    = true
+      + name                                        = "future20-vm-dev"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = false
+      + wait_timeout                                = 60
+
+      + healthcheck (known after apply)
+
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+      + labels {
+          + label = "module"
+          + value = "vm"
+        }
+      + labels {
+          + label = "pipeline"
+          + value = "ci-cd"
+        }
+      + labels {
+          + label = "project"
+          + value = "future-2.0"
+        }
+
+      + networks_advanced {
+          + aliases      = []
+          + name         = "future20-dev"
+            # (2 unchanged attributes hidden)
+        }
+
+      + volumes {
+          + container_path = "/mnt/data"
+          + volume_name    = "future20-vm-dev-data"
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # module.vm.docker_image.vm will be created
+  + resource "docker_image" "vm" {
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "ubuntu:22.04"
+      + repo_digest  = (known after apply)
+    }
+
+  # module.vm.docker_volume.data will be created
+  + resource "docker_volume" "data" {
+      + driver     = (known after apply)
+      + id         = (known after apply)
+      + mountpoint = (known after apply)
+      + name       = "future20-vm-dev-data"
+
+      + labels {
+          + label = "disk-size-gb"
+          + value = "5"
+        }
+      + labels {
+          + label = "environment"
+          + value = "dev"
+        }
+      + labels {
+          + label = "managed-by"
+          + value = "terraform"
+        }
+    }
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + container_id   = (known after apply)
+  + container_name = "future20-vm-dev"
+  + environment    = "dev"
+  + ip_address     = (known after apply)
+  + network_name   = "future20-dev"
+  + volume_name    = "future20-vm-dev-data"
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: tfplan-dev
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan-dev"
+
+=== План сохранён: tfplan-dev ===
+Следующий шаг:
+  ./scripts/apply.sh dev    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4  ./scripts/apply.sh dev  ✔  17s  
+=== Окружение: dev ===
+
+=== terraform apply ===
+План: tfplan-dev
+
+Применить план для окружения 'dev'? (yes/no): yes
+docker_network.env_network: Creating...
+module.vm.docker_image.vm: Creating...
+module.vm.docker_volume.data: Creating...
+module.vm.docker_volume.data: Creation complete after 0s [id=future20-vm-dev-data]
+module.vm.docker_image.vm: Creation complete after 0s [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+docker_network.env_network: Creation complete after 2s [id=b709aec2c9e7611089d8fe948c16598ecca6426bcdc2eb94cbc2dd8d382a76d9]
+module.vm.docker_container.vm: Creating...
+module.vm.docker_container.vm: Creation complete after 0s [id=43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1]
+
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+container_id = "43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1"
+container_name = "future20-vm-dev"
+environment = "dev"
+ip_address = "172.19.0.2"
+network_name = "future20-dev"
+volume_name = "future20-vm-dev-data"
+
+=== Apply завершён ===
+
+Проверка:
+  terraform output
+  docker ps --filter 'label=environment=dev'    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4  mcli ls local/terraform-state/dev/
+[2026-03-09 10:28:04 MSK] 9.6KiB STANDARD terraform.tfstate
+    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4  ./scripts/destroy.sh dev        ✔ 
+=== Окружение: dev ===
+
+=== terraform init ===
+Initializing the backend...
+
+Successfully configured the backend "s3"! Terraform will automatically
+use this backend unless the backend configuration changes.
+Initializing modules...
+Initializing provider plugins...
+- Reusing previous version of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v3.6.2
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+=== terraform destroy ===
+module.vm.docker_image.vm: Refreshing state... [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+module.vm.docker_volume.data: Refreshing state... [id=future20-vm-dev-data]
+docker_network.env_network: Refreshing state... [id=b709aec2c9e7611089d8fe948c16598ecca6426bcdc2eb94cbc2dd8d382a76d9]module.vm.docker_container.vm: Refreshing state... [id=43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with
+the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # docker_network.env_network will be destroyed
+  - resource "docker_network" "env_network" {
+      - attachable   = false -> null
+      - driver       = "bridge" -> null
+      - id           = "b709aec2c9e7611089d8fe948c16598ecca6426bcdc2eb94cbc2dd8d382a76d9" -> null
+      - ingress      = false -> null
+      - internal     = false -> null
+      - ipam_driver  = "default" -> null
+      - ipam_options = {} -> null
+      - ipv6         = false -> null
+      - name         = "future20-dev" -> null
+      - options      = {} -> null
+      - scope        = "local" -> null
+
+      - ipam_config {
+          - aux_address = {} -> null
+          - gateway     = "172.19.0.1" -> null
+          - subnet      = "172.19.0.0/16" -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+    }
+
+  # module.vm.docker_container.vm will be destroyed
+  - resource "docker_container" "vm" {
+      - attach                                      = false -> null
+      - command                                     = [
+          - "sleep",
+          - "infinity",
+        ] -> null
+      - container_read_refresh_timeout_milliseconds = 15000 -> null
+      - cpu_shares                                  = 256 -> null
+      - dns                                         = [] -> null
+      - dns_opts                                    = [] -> null
+      - dns_search                                  = [] -> null
+      - entrypoint                                  = [] -> null
+      - env                                         = [
+          - "ENVIRONMENT=dev",
+        ] -> null
+      - group_add                                   = [] -> null
+      - hostname                                    = "43ccdd38802a" -> null
+      - id                                          = "43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1" -> null
+      - image                                       = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fd" -> null
+      - init                                        = false -> null
+      - ipc_mode                                    = "private" -> null
+      - log_driver                                  = "json-file" -> null
+      - log_opts                                    = {} -> null
+      - logs                                        = false -> null
+      - max_retry_count                             = 0 -> null
+      - memory                                      = 268435456 -> null
+      - memory_swap                                 = 536870912 -> null
+      - must_run                                    = true -> null
+      - name                                        = "future20-vm-dev" -> null
+      - network_data                                = [
+          - {
+              - gateway                   = "172.19.0.1"
+              - global_ipv6_prefix_length = 0
+              - ip_address                = "172.19.0.2"
+              - ip_prefix_length          = 16
+              - mac_address               = "a2:d5:4b:4e:c0:b5"
+              - network_name              = "future20-dev"
+                # (2 unchanged attributes hidden)
+            },
+        ] -> null
+      - network_mode                                = "bridge" -> null
+      - privileged                                  = false -> null
+      - publish_all_ports                           = false -> null
+      - read_only                                   = false -> null
+      - remove_volumes                              = true -> null
+      - restart                                     = "unless-stopped" -> null
+      - rm                                          = false -> null
+      - runtime                                     = "runc" -> null
+      - security_opts                               = [] -> null
+      - shm_size                                    = 64 -> null
+      - start                                       = true -> null
+      - stdin_open                                  = false -> null
+      - stop_timeout                                = 0 -> null
+      - storage_opts                                = {} -> null
+      - sysctls                                     = {} -> null
+      - tmpfs                                       = {} -> null
+      - tty                                         = false -> null
+      - wait                                        = false -> null
+      - wait_timeout                                = 60 -> null
+        # (8 unchanged attributes hidden)
+
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+      - labels {
+          - label = "module" -> null
+          - value = "vm" -> null
+        }
+      - labels {
+          - label = "pipeline" -> null
+          - value = "ci-cd" -> null
+        }
+      - labels {
+          - label = "project" -> null
+          - value = "future-2.0" -> null
+        }
+
+      - networks_advanced {
+          - aliases      = [] -> null
+          - name         = "future20-dev" -> null
+            # (2 unchanged attributes hidden)
+        }
+
+      - volumes {
+          - container_path = "/mnt/data" -> null
+          - read_only      = false -> null
+          - volume_name    = "future20-vm-dev-data" -> null
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # module.vm.docker_image.vm will be destroyed
+  - resource "docker_image" "vm" {
+      - id           = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04" -> null
+      - image_id     = "sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fd" -> null
+      - keep_locally = true -> null
+      - name         = "ubuntu:22.04" -> null
+      - repo_digest  = "ubuntu@sha256:3ba65aa20f86a0fad9df2b2c259c613df006b2e6d0bfcc8a146afb8c525a9751" -> null
+    }
+
+  # module.vm.docker_volume.data will be destroyed
+  - resource "docker_volume" "data" {
+      - driver      = "local" -> null
+      - driver_opts = {} -> null
+      - id          = "future20-vm-dev-data" -> null
+      - mountpoint  = "/var/lib/docker/volumes/future20-vm-dev-data/_data" -> null
+      - name        = "future20-vm-dev-data" -> null
+
+      - labels {
+          - label = "disk-size-gb" -> null
+          - value = "5" -> null
+        }
+      - labels {
+          - label = "environment" -> null
+          - value = "dev" -> null
+        }
+      - labels {
+          - label = "managed-by" -> null
+          - value = "terraform" -> null
+        }
+    }
+
+Plan: 0 to add, 0 to change, 4 to destroy.
+
+Changes to Outputs:
+  - container_id   = "43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1" -> null
+  - container_name = "future20-vm-dev" -> null
+  - environment    = "dev" -> null
+  - ip_address     = "172.19.0.2" -> null
+  - network_name   = "future20-dev" -> null
+  - volume_name    = "future20-vm-dev-data" -> null
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value:yes
+
+module.vm.docker_container.vm: Destroying... [id=43ccdd38802ad8b17c0d67db577063610e352e4590cab19cbfba27998d824ab1]
+module.vm.docker_container.vm: Destruction complete after 0s
+module.vm.docker_volume.data: Destroying... [id=future20-vm-dev-data]
+docker_network.env_network: Destroying... [id=b709aec2c9e7611089d8fe948c16598ecca6426bcdc2eb94cbc2dd8d382a76d9]
+module.vm.docker_image.vm: Destroying... [id=sha256:8ea4cbcf3a26ffe08ba1fa548831bc318beb1a689e921b70c0c47cac329e96fdubuntu:22.04]
+module.vm.docker_image.vm: Destruction complete after 0s
+module.vm.docker_volume.data: Destruction complete after 2s
+docker_network.env_network: Destruction complete after 2s
+
+Destroy complete! Resources: 4 destroyed.
+    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4  ./scripts/destroy.sh dev
+docker compose down
+=== Окружение: dev ===
+
+=== terraform init ===
+Initializing the backend...
+
+Successfully configured the backend "s3"! Terraform will automatically
+use this backend unless the backend configuration changes.
+Initializing modules...
+Initializing provider plugins...
+- Reusing previous version of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v3.6.2
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+=== terraform destroy ===
+
+No changes. No objects need to be destroyed.
+
+Either you have not created any objects yet or the existing objects were already deleted outside of Terraform.
+
+Destroy complete! Resources: 0 destroyed.
+[+] down 2/2
+ ✔ Container terraform-minio     Removed                                                                        0.1s
+ ✔ Network task2advanced_default Removed                                                                        0.1s
+    ~/p/a/11/architecture-future_pro_2_0/Task2Advanced    develop !1 ?4 

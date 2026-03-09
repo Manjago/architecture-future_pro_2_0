@@ -1,0 +1,101 @@
+@startuml bounded-contexts
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Context Map «Будущее 2.0» — Bounded Contexts и отношения
+
+' === Теги ===
+
+AddElementTag("bc", $bgColor="#438DD5", $fontColor="#ffffff", $legendText="Bounded Context")
+AddElementTag("shared", $bgColor="#6B8E23", $fontColor="#ffffff", $legendText="Shared Kernel")
+AddElementTag("acl", $bgColor="#E8A317", $fontColor="#ffffff", $legendText="Anti-Corruption Layer")
+AddElementTag("external", $bgColor="#999999", $fontColor="#ffffff", $legendText="Внешняя система (Conformist)")
+
+AddRelTag("partnership", $lineColor="#8B008B", $textColor="#8B008B", $legendText="Partnership")
+AddRelTag("customer_supplier", $lineColor="#2E8B57", $textColor="#2E8B57", $legendText="Customer–Supplier (OHS/PL)")
+AddRelTag("conformist", $lineColor="#999999", $textColor="#999999", $legendText="Conformist")
+AddRelTag("acl_rel", $lineColor="#E8A317", $textColor="#E8A317", $legendText="ACL-интеграция")
+
+' === Shared Kernel ===
+
+System(shared_kernel, "Shared Kernel", "Общие идентификаторы:\nPatientId, ClinicId,\nEmployeeId, Money", $tags="shared")
+
+' === Медицинский домен ===
+
+System(patient_mgmt, "Patient Management", "BC: регистрация, приём,\nмедкарты, назначения\n[Актор: Оператор клиники]", $tags="bc")
+System(diagnostics, "Diagnostics", "BC: диагностические\nисследования, результаты\n[Актор: Врач]", $tags="bc")
+
+' === Финтех-домен ===
+
+System(billing, "Billing", "BC: счета, платежи,\nрасчёты\n[Актор: Оператор / Система]", $tags="bc")
+System(credit, "Credit", "BC: кредитные договоры,\nскоринг, одобрение\n[Актор: Финтех-пользователь]", $tags="bc")
+
+' === ИИ-домен ===
+
+System(ai_diagnostics, "AI Diagnostics", "BC: ИИ-модели для\nдиагностики и скоринга\n[Актор: Врач / Система]", $tags="bc")
+
+' === Внутренний домен ===
+
+System(internal_ops, "Internal Operations", "BC: HR, инвентаризация,\nуправление клиниками\n[Актор: Администратор]", $tags="bc")
+
+' === Аналитический домен ===
+
+System(analytics, "Analytics & BI", "BC: портал самообслуживания,\nвитрины данных, отчёты\n[Актор: Бизнес-аналитик]", $tags="bc")
+
+' === Legacy Bridge (ACL) ===
+
+System(legacy_bridge, "Legacy Bridge", "ACL: Camel Bridge +\nDWH (SQL Server 2008) +\nPowerBuilder UI\n[на вывод к 36 мес.]", $tags="acl")
+
+' === Внешние системы ===
+
+System_Ext(payment, "Платёжные системы", "Процессинг платежей")
+System_Ext(regulators, "Регуляторы", "ЦБ, Росздравнадзор,\nРоскомнадзор")
+System_Ext(pharma, "Фармацевтические\nкомпании", "Поставка лекарств")
+System_Ext(electronics, "Производитель\nмед. оборудования", "Диагностическое\nоборудование")
+
+' === Отношения: Partnership ===
+
+Rel_R(patient_mgmt, diagnostics, "Partnership\nобщий мед. процесс", "", $tags="partnership")
+Rel_D(diagnostics, ai_diagnostics, "Partnership\nсо-эволюция диагностики", "", $tags="partnership")
+
+' === Отношения: Customer–Supplier (OHS/PL) ===
+
+Rel_D(patient_mgmt, billing, "U → D\nPatientRegistered\n→ создание счёта\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel_D(ai_diagnostics, credit, "U → D\nScoringCompleted\n→ кредитное решение\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(patient_mgmt, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(diagnostics, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(billing, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(credit, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(ai_diagnostics, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+Rel(internal_ops, analytics, "U → D\n[OHS/PL: Avro]", "", $tags="customer_supplier")
+
+' === Отношения: Conformist ===
+
+Rel_D(billing, payment, "Conformist\nпротокол платёжной\nсистемы", "", $tags="conformist")
+Rel(patient_mgmt, regulators, "Conformist\nотчётность\nРосздравнадзор", "", $tags="conformist")
+Rel(credit, regulators, "Conformist\nотчётность ЦБ", "", $tags="conformist")
+Rel(billing, regulators, "Conformist\nфинансовая\nотчётность", "", $tags="conformist")
+
+' === Отношения: ACL ===
+
+Rel(legacy_bridge, patient_mgmt, "ACL\nlegacy → events", "", $tags="acl_rel")
+Rel(legacy_bridge, billing, "ACL\nlegacy → events", "", $tags="acl_rel")
+Rel(legacy_bridge, internal_ops, "ACL\nlegacy → events", "", $tags="acl_rel")
+
+' === Отношения: Внешние интеграции ===
+
+Rel(diagnostics, electronics, "OHS\nрезультаты\nисследований\n[API/HL7]", "", $tags="customer_supplier")
+Rel(patient_mgmt, pharma, "OHS\nданные по\nназначениям\n[API]", "", $tags="customer_supplier")
+
+' === Shared Kernel связи ===
+
+Rel(shared_kernel, patient_mgmt, "SK", "", $tags="partnership")
+Rel(shared_kernel, diagnostics, "SK", "", $tags="partnership")
+Rel(shared_kernel, billing, "SK", "", $tags="partnership")
+Rel(shared_kernel, credit, "SK", "", $tags="partnership")
+Rel(shared_kernel, ai_diagnostics, "SK", "", $tags="partnership")
+Rel(shared_kernel, internal_ops, "SK", "", $tags="partnership")
+Rel(shared_kernel, analytics, "SK", "", $tags="partnership")
+
+@enduml

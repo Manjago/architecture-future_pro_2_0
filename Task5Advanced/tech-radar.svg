@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1100" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <style>
+      .ring-label { font-size: 13px; fill: #888; font-weight: bold; }
+      .quadrant-label { font-size: 18px; fill: #333; font-weight: bold; }
+      .item { font-size: 11px; fill: #333; }
+      .item-dot { r: 6; }
+      .legend-text { font-size: 12px; fill: #555; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="1100" fill="#FAFAFA"/>
+
+  <!-- Title -->
+  <text x="550" y="35" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">Технологический радар «Будущее 2.0»</text>
+
+  <!-- Radar center -->
+  <!-- cx=550 cy=570 -->
+
+  <!-- Rings -->
+  <circle cx="550" cy="570" r="480" fill="none" stroke="#ddd" stroke-width="1"/>
+  <circle cx="550" cy="570" r="360" fill="none" stroke="#ddd" stroke-width="1"/>
+  <circle cx="550" cy="570" r="240" fill="none" stroke="#ddd" stroke-width="1"/>
+  <circle cx="550" cy="570" r="120" fill="none" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Ring fills -->
+  <circle cx="550" cy="570" r="480" fill="#f5f5f5" opacity="0.3"/>
+  <circle cx="550" cy="570" r="360" fill="#e8e8e8" opacity="0.3"/>
+  <circle cx="550" cy="570" r="240" fill="#ddd" opacity="0.3"/>
+  <circle cx="550" cy="570" r="120" fill="#ccc" opacity="0.3"/>
+
+  <!-- Quadrant dividers -->
+  <line x1="550" y1="90" x2="550" y2="1050" stroke="#ccc" stroke-width="1"/>
+  <line x1="70" y1="570" x2="1030" y2="570" stroke="#ccc" stroke-width="1"/>
+
+  <!-- Ring labels (right side) -->
+  <text x="570" y="465" class="ring-label">Adopt</text>
+  <text x="570" y="345" class="ring-label">Trial</text>
+  <text x="570" y="225" class="ring-label">Assess</text>
+  <text x="570" y="105" class="ring-label">Hold</text>
+
+  <!-- Quadrant labels -->
+  <text x="300" y="75" text-anchor="middle" class="quadrant-label">Techniques</text>
+  <text x="800" y="75" text-anchor="middle" class="quadrant-label">Platforms</text>
+  <text x="300" y="1080" text-anchor="middle" class="quadrant-label">Tools</text>
+  <text x="800" y="1080" text-anchor="middle" class="quadrant-label">Languages &amp; Frameworks</text>
+
+  <!-- ======================== -->
+  <!-- Q1: Techniques (top-left) -->
+  <!-- ======================== -->
+
+  <!-- Adopt (inner ring) -->
+  <circle cx="470" cy="490" r="6" fill="#2E8B57"/>
+  <text x="450" y="480" class="item" text-anchor="end">EDA</text>
+
+  <circle cx="510" cy="460" r="6" fill="#2E8B57"/>
+  <text x="490" y="450" class="item" text-anchor="end">DDD</text>
+
+  <circle cx="440" cy="530" r="6" fill="#2E8B57"/>
+  <text x="420" y="525" class="item" text-anchor="end">IaC</text>
+
+  <circle cx="490" cy="540" r="6" fill="#2E8B57"/>
+  <text x="470" y="555" class="item" text-anchor="end">ACL</text>
+
+  <!-- Trial -->
+  <circle cx="380" cy="420" r="6" fill="#4169E1"/>
+  <text x="360" y="415" class="item" text-anchor="end">Data Mesh</text>
+
+  <circle cx="420" cy="380" r="6" fill="#4169E1"/>
+  <text x="400" y="375" class="item" text-anchor="end">Self-Service BI</text>
+
+  <!-- Assess -->
+  <circle cx="440" cy="350" r="6" fill="#E8A317"/>
+  <text x="420" y="345" class="item" text-anchor="end">CQRS</text>
+
+  <circle cx="480" cy="340" r="6" fill="#E8A317"/>
+  <text x="496" y="335" class="item" text-anchor="end">Event Sourcing</text>
+
+  <!-- Hold -->
+  <circle cx="400" cy="200" r="6" fill="#CC4444"/>
+  <text x="380" y="195" class="item" text-anchor="end">Batch ETL</text>
+
+  <circle cx="350" cy="160" r="6" fill="#CC4444"/>
+  <text x="330" y="155" class="item" text-anchor="end">P2P Integration (ESB)</text>
+
+  <!-- ======================== -->
+  <!-- Q2: Platforms (top-right) -->
+  <!-- ======================== -->
+
+  <!-- Adopt -->
+  <circle cx="630" cy="490" r="6" fill="#2E8B57"/>
+  <text x="650" y="485" class="item">Kafka</text>
+
+  <circle cx="600" cy="460" r="6" fill="#2E8B57"/>
+  <text x="620" y="455" class="item">PostgreSQL</text>
+
+  <circle cx="650" cy="530" r="6" fill="#2E8B57"/>
+  <text x="670" y="525" class="item">Kubernetes</text>
+
+  <circle cx="610" cy="540" r="6" fill="#2E8B57"/>
+  <text x="630" y="555" class="item">S3 / Object Storage</text>
+
+  <!-- Trial -->
+  <circle cx="680" cy="400" r="6" fill="#4169E1"/>
+  <text x="700" y="395" class="item">ClickHouse</text>
+
+  <circle cx="720" cy="430" r="6" fill="#4169E1"/>
+  <text x="740" y="425" class="item">Managed Cloud</text>
+
+  <!-- Hold -->
+  <circle cx="700" cy="180" r="6" fill="#CC4444"/>
+  <text x="720" y="175" class="item">SQL Server 2008</text>
+
+  <!-- ======================== -->
+  <!-- Q3: Tools (bottom-left) -->
+  <!-- ======================== -->
+
+  <!-- Adopt -->
+  <circle cx="470" cy="650" r="6" fill="#2E8B57"/>
+  <text x="450" y="648" class="item" text-anchor="end">Terraform</text>
+
+  <circle cx="510" cy="680" r="6" fill="#2E8B57"/>
+  <text x="490" y="678" class="item" text-anchor="end">Keycloak</text>
+
+  <circle cx="440" cy="710" r="6" fill="#2E8B57"/>
+  <text x="420" y="708" class="item" text-anchor="end">Kong / Envoy</text>
+
+  <circle cx="490" cy="620" r="6" fill="#2E8B57"/>
+  <text x="470" y="618" class="item" text-anchor="end">Schema Registry</text>
+
+  <circle cx="520" cy="730" r="6" fill="#2E8B57"/>
+  <text x="500" y="728" class="item" text-anchor="end">Kafka Connect</text>
+
+  <circle cx="460" cy="760" r="6" fill="#2E8B57"/>
+  <text x="440" y="758" class="item" text-anchor="end">Grafana + Prometheus</text>
+
+  <!-- Trial -->
+  <circle cx="380" cy="780" r="6" fill="#4169E1"/>
+  <text x="360" y="778" class="item" text-anchor="end">Apache Flink</text>
+
+  <circle cx="350" cy="740" r="6" fill="#4169E1"/>
+  <text x="330" y="738" class="item" text-anchor="end">MLflow</text>
+
+  <circle cx="400" cy="820" r="6" fill="#4169E1"/>
+  <text x="380" y="818" class="item" text-anchor="end">Jaeger / Zipkin</text>
+
+  <!-- Hold -->
+  <circle cx="350" cy="930" r="6" fill="#CC4444"/>
+  <text x="330" y="928" class="item" text-anchor="end">Power BI</text>
+
+  <circle cx="400" cy="970" r="6" fill="#CC4444"/>
+  <text x="380" y="968" class="item" text-anchor="end">PowerBuilder</text>
+
+  <!-- ====================================== -->
+  <!-- Q4: Languages & Frameworks (bottom-right) -->
+  <!-- ====================================== -->
+
+  <!-- Adopt -->
+  <circle cx="630" cy="650" r="6" fill="#2E8B57"/>
+  <text x="650" y="648" class="item">Java / Kotlin</text>
+
+  <circle cx="610" cy="690" r="6" fill="#2E8B57"/>
+  <text x="630" y="688" class="item">Python + FastAPI</text>
+
+  <circle cx="650" cy="720" r="6" fill="#2E8B57"/>
+  <text x="670" y="718" class="item">Go</text>
+
+  <circle cx="600" cy="640" r="6" fill="#2E8B57"/>
+  <text x="620" y="660" class="item">React</text>
+
+  <!-- Hold -->
+  <circle cx="700" cy="940" r="6" fill="#CC4444"/>
+  <text x="720" y="938" class="item">PowerBuilder (язык)</text>
+
+  <!-- ======================== -->
+  <!-- Legend -->
+  <!-- ======================== -->
+  <rect x="30" y="1010" width="340" height="75" rx="5" fill="white" stroke="#ddd"/>
+  <circle cx="55" cy="1030" r="6" fill="#2E8B57"/>
+  <text x="70" y="1034" class="legend-text">Adopt — стандарт</text>
+  <circle cx="55" cy="1052" r="6" fill="#4169E1"/>
+  <text x="70" y="1056" class="legend-text">Trial — пилотируем</text>
+  <circle cx="200" cy="1030" r="6" fill="#E8A317"/>
+  <text x="215" y="1034" class="legend-text">Assess — изучаем</text>
+  <circle cx="200" cy="1052" r="6" fill="#CC4444"/>
+  <text x="215" y="1056" class="legend-text">Hold — не для новых проектов</text>
+</svg>
