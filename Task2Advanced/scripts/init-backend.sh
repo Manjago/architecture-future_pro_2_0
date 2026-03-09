@@ -4,7 +4,9 @@
 #
 # Предварительные требования:
 #   - Docker и docker-compose установлены и запущены
-#   - mc (MinIO Client) установлен: https://min.io/docs/minio/linux/reference/minio-mc.html
+#   - MinIO Client установлен:
+#       Arch/Manjaro: sudo pacman -S minio-client (бинарник: mcli)
+#       Другие:       https://min.io/docs/minio/linux/reference/minio-mc.html (бинарник: mc)
 #
 # Использование:
 #   ./scripts/init-backend.sh
@@ -17,6 +19,23 @@ MINIO_ACCESS_KEY="minioadmin"
 MINIO_SECRET_KEY="minioadmin"
 BUCKET_NAME="terraform-state"
 
+# --- Определяем имя бинарника MinIO Client ---
+# На Arch/Manjaro пакет minio-client ставит бинарник как 'mcli',
+# чтобы не конфликтовать с Midnight Commander ('mc').
+# На других дистрибутивах бинарник называется 'mc'.
+if command -v mcli &> /dev/null; then
+  MC=mcli
+elif command -v mc &> /dev/null; then
+  MC=mc
+else
+  echo "Ошибка: MinIO Client не найден."
+  echo "  Arch/Manjaro: sudo pacman -S minio-client"
+  echo "  Другие:       https://min.io/docs/minio/linux/reference/minio-mc.html"
+  exit 1
+fi
+echo "MinIO Client: ${MC}"
+
+echo ""
 echo "=== 1. Запуск MinIO ==="
 docker compose up -d
 
@@ -27,20 +46,24 @@ for i in $(seq 1 30); do
     echo "MinIO готов."
     break
   fi
+  if [ "$i" -eq 30 ]; then
+    echo "Ошибка: MinIO не запустился за 60 секунд."
+    exit 1
+  fi
   echo "  Ожидание... ($i/30)"
   sleep 2
 done
 
 echo ""
 echo "=== 3. Настройка MinIO Client ==="
-mc alias set local "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" 2>/dev/null || true
+${MC} alias set local "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" 2>/dev/null || true
 
 echo ""
 echo "=== 4. Создание бакета '${BUCKET_NAME}' ==="
-if mc ls local/"${BUCKET_NAME}" > /dev/null 2>&1; then
+if ${MC} ls local/"${BUCKET_NAME}" > /dev/null 2>&1; then
   echo "Бакет '${BUCKET_NAME}' уже существует."
 else
-  mc mb local/"${BUCKET_NAME}"
+  ${MC} mb local/"${BUCKET_NAME}"
   echo "Бакет '${BUCKET_NAME}' создан."
 fi
 
