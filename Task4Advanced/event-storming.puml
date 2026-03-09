@@ -1,0 +1,128 @@
+@startuml event-storming
+
+title Event Storming «Будущее 2.0» — межконтекстные события и политики (Big Picture)
+
+skinparam defaultTextAlignment center
+skinparam shadowing false
+skinparam nodesep 20
+skinparam ranksep 30
+
+' === Стили ===
+
+skinparam rectangle<<event>> {
+    BackgroundColor #FF8C00
+    FontColor #FFFFFF
+    BorderColor #CC7000
+    RoundCorner 10
+}
+
+skinparam rectangle<<policy>> {
+    BackgroundColor #BA55D3
+    FontColor #FFFFFF
+    BorderColor #9040A8
+    RoundCorner 10
+}
+
+skinparam rectangle<<downstream>> {
+    BackgroundColor #98FB98
+    FontColor #333333
+    BorderColor #70CC70
+    RoundCorner 10
+}
+
+' ============================================================
+'  BOUNDED CONTEXTS
+' ============================================================
+
+package "**Patient Management**\n//Оператор клиники//" as PM #DCEEFB {
+    rectangle "PatientRegistered" <<event>> as evt_pr
+    rectangle "PatientUpdated" <<event>> as evt_pu
+}
+
+package "**Diagnostics**\n//Врач//" as DIAG #DCEEFB {
+    rectangle "ResearchOrdered" <<event>> as evt_ro
+    rectangle "ResearchCompleted" <<event>> as evt_rc
+}
+
+package "**AI Diagnostics**\n//Врач · Система//" as AI #FFF3E0 {
+    rectangle "AIDiagnosisCompleted" <<event>> as evt_ai
+    rectangle "AIDiagnosisFailed" <<event>> as evt_aif
+    rectangle "ScoringCompleted" <<event>> as evt_sc
+}
+
+package "**Billing**\n//Оператор · Система//" as BILL #E8F5E9 {
+    rectangle "InvoiceCreated" <<event>> as evt_ic
+    rectangle "PaymentReceived" <<event>> as evt_pay
+}
+
+package "**Credit**\n//Финтех-пользователь//" as CRED #E8F5E9 {
+    rectangle "CreditContractCreated" <<event>> as evt_cc
+    rectangle "CreditApproved" <<event>> as evt_ca
+    rectangle "CreditRejected" <<event>> as evt_cr
+}
+
+package "**Internal Operations**\n//Администратор//" as INT #F3E5F5 {
+    rectangle "EmployeeHired" <<event>> as evt_eh
+    rectangle "InventoryUpdated" <<event>> as evt_iu
+}
+
+package "**Analytics & BI**\n//Бизнес-аналитик//" as AN #FFF8E1 {
+    rectangle "Подписан на все\nдоменные события" <<downstream>> as an_sub
+    rectangle "ReportGenerated" <<event>> as evt_rg
+}
+
+' ============================================================
+'  МЕЖКОНТЕКСТНЫЕ ПОЛИТИКИ
+' ============================================================
+
+rectangle "**Policy:**\nПациент зарегистрирован\n→ создать счёт" <<policy>> as pol1
+evt_pr -down-> pol1
+pol1 -down-> BILL
+
+rectangle "**Policy:**\nИсследование назначено\n→ запустить ИИ-анализ" <<policy>> as pol2
+evt_ro -down-> pol2
+pol2 -down-> AI
+
+rectangle "**Policy:**\nИсследование завершено\n→ ИИ-анализ результатов" <<policy>> as pol3
+evt_rc -down-> pol3
+pol3 -down-> AI
+
+rectangle "**Policy:**\nКредитный договор создан\n→ запустить скоринг" <<policy>> as pol4
+evt_cc -down-> pol4
+pol4 -down-> AI
+
+rectangle "**Policy:**\nСкоринг завершён\n→ кредитное решение" <<policy>> as pol5
+evt_sc -down-> pol5
+pol5 -down-> CRED
+
+' === Все → Analytics ===
+
+evt_pr -[dotted]-> an_sub
+evt_rc -[dotted]-> an_sub
+evt_ai -[dotted]-> an_sub
+evt_ic -[dotted]-> an_sub
+evt_pay -[dotted]-> an_sub
+evt_cc -[dotted]-> an_sub
+evt_ca -[dotted]-> an_sub
+evt_eh -[dotted]-> an_sub
+evt_iu -[dotted]-> an_sub
+
+' ============================================================
+'  ЛЕГЕНДА
+' ============================================================
+
+legend bottom left
+    |= Цвет |= Элемент |
+    | <back:#FF8C00><color:#FFFFFF> Событие </color></back> | Domain Event (факт, прошедшее время) |
+    | <back:#BA55D3><color:#FFFFFF> Политика </color></back> | Policy (реакция: «когда X → делаем Y») |
+    | <back:#98FB98> Подписчик </back> | Downstream-контекст |
+    | ....  | Поток в Analytics (все события) |
+    |       |  |
+    | <back:#DCEEFB> Фон </back> | Медицинский домен |
+    | <back:#E8F5E9> Фон </back> | Финтех-домен |
+    | <back:#FFF3E0> Фон </back> | ИИ-домен |
+    | <back:#F3E5F5> Фон </back> | Внутренний домен |
+    | <back:#FFF8E1> Фон </back> | Аналитический домен |
+endlegend
+
+@enduml
